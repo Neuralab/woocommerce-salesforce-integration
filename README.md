@@ -42,7 +42,7 @@ Salesforce and Woocommerce integration for WordPress. (A syncing engine for all 
 
  [![Setup](https://www.neuralab.net/wp-content/uploads/2016/08/NWSI-Operating-1.png)](https://www.neuralab.net/wp-content/uploads/2016/08/NWSI-Operating-1.png "Setup")
  
- 2. You’ll be redirect to a new form where you can see the list of Salesforce object fields on the left. For each field you can see type of field like string, boolean, picklist, if it’s required (red asterisk - *) or not, and belonging select of WooCommerce object fields. Make sure that the types of fields match! You can also add custom static values for each field. For example, for the fields type string or textarea it’s a custom string, for integer and double it’s a number, for boolean fields it’s a true or false values, etc. For a field type picklist you can only choose predefined Salesforce values. 
+2. You’ll be redirect to a new form where you can see the list of Salesforce object fields on the left. For each field you can see type of field like string, boolean, picklist, if it’s required (red asterisk - *) or not, and belonging select of WooCommerce object fields. Make sure that the types of fields match! You can also add custom static values for each field. For example, for the fields type string or textarea it’s a custom string, for integer and double it’s a number, for boolean fields it’s a true or false values, etc. For a field type picklist you can only choose predefined Salesforce values. 
  
  [![Setup](https://www.neuralab.net/wp-content/uploads/2016/08/NWSI-Operating-2.png)](https://www.neuralab.net/wp-content/uploads/2016/08/NWSI-Operating-2.png "Setup")
 
@@ -52,7 +52,7 @@ Salesforce and Woocommerce integration for WordPress. (A syncing engine for all 
 
  [![Setup](https://www.neuralab.net/wp-content/uploads/2016/08/NWSI-Operating-3.png)](https://www.neuralab.net/wp-content/uploads/2016/08/NWSI-Operating-3.png "Setup")
  
- 5. When done with defining relationship, click on Save changes button.
+5. When done with defining relationship, click on Save changes button.
 
 ## Relationships management
 
