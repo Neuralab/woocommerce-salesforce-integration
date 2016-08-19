@@ -1,0 +1,64 @@
+#nwsi-new-relationship-form select, #nwsi-new-relationship-form tbody input {
+  width: 25em;
+}
+#nwsi-add-new-rel-wrapper {
+  padding-top: 10px;
+}
+#nwsi-sync-settings label {
+  font-size: 14px;
+  font-weight: 600;
+  padding-right: 10px;
+  color: #23282d;
+}
+#nwsi-sync-settings input[type='checkbox'] {
+  margin-top: 2px;
+}
+.nwsi-required-sf-field {
+  color: #da2323;
+}
+
+#nwsi-new-relationship-form {
+  width: 1000px;
+}
+#nwsi-new-relationship-form thead th:nth-of-type(2) {
+  padding-left: 10px;
+}
+#nwsi-new-relationship-form tbody td {
+  overflow: hidden;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+#nwsi-new-relationship-form thead {
+  display: table-header-group;
+}
+.nwsi-new-relationship-form-metabox h4 {
+  font-size: 14px;
+  color: #23282d;
+  line-height: 1.3;
+font-weight: 600;
+}
+#nwsi-required-sf-objects tbody td {
+  text-align: center;
+}
+.nwsi-unique-fields-plus {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.nwsi-sf-sync-metabox-column-name {
+  font-weight: 600;
+  color: #444;
+}
+
+@media screen and (max-width: 782px) {
+  #nwsi-new-relationship-form select {
+    width: 400px;
+  }
+  #nwsi-new-relationship-form tbody td {
+    padding-top: 4px;
+    padding-bottom: 6px;
+  }
+  #nwsi-new-relationship-form thead {
+    display: none;
+  }
+}
