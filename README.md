@@ -1,7 +1,7 @@
 # WooCommerce-Salesforce-integration
 Salesforce and Woocommerce integration for WordPress. (A syncing engine for all sort of datasets and configurations)
 
-[![Introduction Video](http://img.youtube.com/vi/W67pldjT_pE/0.jpg)](https://www.youtube.com/watch?v=W67pldjT_pE "Introduction Video")
+[![Demo & Setup Video](https://www.neuralab.net/wp-content/uploads/2016/08/WooCommerce-Salesforce-Github.jpg)](https://www.youtube.com/watch?v=W67pldjT_pE "Demo & Setup Video")
 
 # Installation procedure
 1. Upload the ‘woocommerce-salesforce-integration’ directory to your ‘/wp-content/plugins/’ directory using FTP, SFTP or similar method.
