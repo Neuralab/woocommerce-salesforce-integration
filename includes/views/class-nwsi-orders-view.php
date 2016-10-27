@@ -127,6 +127,11 @@ if ( !class_exists( "NWSI_Orders_View" ) ) {
         echo "<br/>";
         echo "<input type='submit' name='salesforce_sync_request' class='button button-primary' value='" . __( "Save and sync order", "woocommerce-integration-nwsi" ) . "' />";
       }
+      if ( $status == "success") {
+          wp_nonce_field( "nwsi_sync_product", "nwsi_sync_product_nonce" );
+          echo "<br/>";
+          echo "<input type='submit' name='salesforce_sync_request' class='button button-primary' value='" . __( "Save and re-sync order", "woocommerce-integration-nwsi" ) . "' />";
+        }
 
     }
 
