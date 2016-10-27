@@ -64,8 +64,10 @@ if ( nwsi_is_woocommerce_active() ) {
         if ( is_admin() ) {
           require_once( "includes/views/class-nwsi-orders-view.php" );
           new NWSI_Orders_View();
-
-          wp_enqueue_style( "nwsi-settings-style", plugins_url( "/includes/style/nwsi-settings.css", __FILE__ ) );
+            //TODO: Find a better way of doing this
+           add_action('admin_enqueue_scripts', function() {
+                wp_enqueue_style( "nwsi-settings-style", plugins_url( "/includes/style/nwsi-settings.css", FILE ) );
+            });
         }
 
         $this->worker = new NWSI_Salesforce_Worker();
