@@ -52,7 +52,9 @@ if ( nwsi_is_woocommerce_active() ) {
        * Class constructor
        */
       protected function __construct() {
-        define( "NWSI_FOLDER_NAME", basename( __DIR__ ) );
+        if ( !defined( "NWSI_FOLDER_NAME" ) ) {
+          define( NWSI_FOLDER_NAME, basename( __DIR__ ) );
+        }
 
         require_once( "includes/controllers/core/class-nwsi-salesforce-object-manager.php" );
         require_once( "includes/controllers/core/class-nwsi-salesforce-worker.php" );
@@ -92,6 +94,9 @@ if ( nwsi_is_woocommerce_active() ) {
       public static function install() {
         if ( !current_user_can( "activate_plugins" ) ) {
   	      return;
+        }
+        if ( !defined( "NWSI_FOLDER_NAME" ) ) {
+          define( NWSI_FOLDER_NAME, basename( __DIR__ ) );
         }
 
         require_once( "includes/controllers/core/class-nwsi-db.php" );

@@ -36,7 +36,8 @@ if ( !class_exists( "NWSI_Utility" ) ) {
     * @return mixed string or array/object if $json_decode=true
     */
     public function load_from_file( $filename, $foldername, $json_decode = true ) {
-      if ( defined( NWSI_FOLDER_NAME ) ) {
+
+      if ( defined( "NWSI_FOLDER_NAME" ) ) {
         $root_foldername = NWSI_FOLDER_NAME;
       } else {
         $root_foldername = "woocommerce-salesforce-integration";
