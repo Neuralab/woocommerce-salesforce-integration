@@ -132,8 +132,9 @@ if ( nwsi_is_woocommerce_active() ) {
         delete_option( "woocommerce_nwsi_access_token" );
         delete_option( "woocommerce_nwsi_refresh_token" );
         delete_option( "woocommerce_nwsi_instance_url" );
+        delete_option( "woocommerce_nwsi_automatic_order_sync" );
 
-        require_once( "includes/class-nwsi-db.php" );
+        require_once( "includes/controllers/core/class-nwsi-db.php" );
         $db = new NWSI_DB();
         $db->delete_relationship_table();
 
