@@ -122,11 +122,9 @@ if ( !class_exists( "NWSI_Orders_View" ) ) {
         echo "<textarea style='width:100%;min-height:200px;'>" . $error_messages_txt . "</textarea>";
       }
 
-      if ( $status == "failed" || $status == "none" ) {
-        wp_nonce_field( "nwsi_sync_product", "nwsi_sync_product_nonce" );
-        echo "<br/>";
-        echo "<input type='submit' name='salesforce_sync_request' class='button button-primary' value='" . __( "Save and sync order", "woocommerce-integration-nwsi" ) . "' />";
-      }
+      wp_nonce_field( "nwsi_sync_product", "nwsi_sync_product_nonce" );
+      echo "<br/>";
+      echo "<input type='submit' name='salesforce_sync_request' class='button button-primary' value='" . __( "Save and sync order", "woocommerce-integration-nwsi" ) . "' />";
 
     }
 
