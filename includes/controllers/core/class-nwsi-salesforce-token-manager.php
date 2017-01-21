@@ -17,18 +17,17 @@ if ( !class_exists( "NWSI_Salesforce_Token_Manager" ) ) {
 
     private $cryptor;
 
-    protected $login_uri = "https://login.salesforce.com";
+    protected $login_uri;
 
     /**
      * Class constructor
      */
     public function __construct() {
 
-      require_once ( plugin_dir_path( __FILE__ ) .  "../utilites/class-nwsi-cryptor.php" );
-      require_once ( plugin_dir_path( __FILE__ ) .  "../utilites/class-nwsi-utility.php" );
+      $this->login_uri = get_option("woocommerce_nwsi_login_url");
 
+      require_once ( plugin_dir_path( __FILE__ ) .  "../utilites/class-nwsi-cryptor.php" );
       $this->cryptor = new NWSI_Cryptor();
-      $utility       = new NWSI_Utility();
 
       $this->redirect_uri   = admin_url(esc_attr__("admin.php?page=wc-settings&tab=integration&section=nwsi"), "https");
       $this->access_token   = $this->load_access_token();
@@ -102,8 +101,36 @@ if ( !class_exists( "NWSI_Salesforce_Token_Manager" ) ) {
       $this->save_refresh_token( $this->refresh_token );
       update_option( "woocommerce_nwsi_instance_url", $this->instance_url );
 
+      $this->update_connection_hash();
       return "success";
     }
+
+    /**
+     * Create or update a hash string that identifies current used connection
+     */
+    private function update_connection_hash() {
+      $connection_hash = wp_hash( $this->consumer_key . $this->consumer_secret . $this->login_uri );
+      update_option( "woocommerce_nwsi_connection_hash", $connection_hash );
+    }
+
+    /**
+     * Connection string is valid if consumer key, secret, and login URL are the
+     * same as one when connection hash were created
+     * @return boolean
+     */
+    public function is_connection_hash_valid() {
+      $new_connection_hash = wp_hash( $this->consumer_key . $this->consumer_secret . $this->login_uri );
+      $old_connection_hash = get_option( "woocommerce_nwsi_connection_hash" );
+
+      return $new_connection_hash === $old_connection_hash;
+    }
+
+    public function set_login_uri( $login_uri ) {
+      if ( !empty( $login_uri ) && is_string( $login_uri ) ) {
+        $this->login_uri = $login_uri;
+      }
+    }
+
 
     /**
      * Return Salesforce authentication page URL
@@ -115,7 +142,7 @@ if ( !class_exists( "NWSI_Salesforce_Token_Manager" ) ) {
       if ( empty( $consumer_key ) || empty( $consumer_secret ) ) {
         return "";
       }
-  		if ( $this->has_access_token() ) {
+      if ( $this->is_connection_hash_valid() ) {
   		  return "";
   		}
 

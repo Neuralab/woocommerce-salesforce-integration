@@ -40,18 +40,35 @@ if ( !class_exists( "NWSI_Settings" ) ) {
       $this->process_requests();
     }
 
+    /**
+     * Update options such as automatic order sync and login URL
+     * @param array $data - usually $_POST
+     */
+    private function update_additional_settings( $data ) {
+      // update automatic order sync option
+      if ( empty( $data["automatic_order_sync"] ) ) {
+        update_option( "woocommerce_nwsi_automatic_order_sync", "0" );
+      } else {
+        update_option( "woocommerce_nwsi_automatic_order_sync", "1" );
+      }
+      // update login url
+      if ( !empty($data["woocommerce_nwsi_login_url"]) ) {
+        $login_url = $data["woocommerce_nwsi_login_url"];
+        if ( substr($login_url, -1) === "/" ) {
+          $login_url = esc_attr__(rtrim(trim($login_url), "/"));
+        }
+        $this->sf->set_login_uri( $login_url );
+        update_option( "woocommerce_nwsi_login_url", $login_url );
+      }
+    }
+
 		/**
 		 * Process GET and POST requests
 		 */
 		private function process_requests() {
-			if ( !array_key_exists( "rel", $_GET ) ) {
-        // checkbox for automatic order sync
+      if ( !array_key_exists( "rel", $_GET ) ) {
         if ( !empty( $_POST["save"] ) ) {
-          if ( empty( $_POST["automatic_order_sync"] ) ) {
-            update_option( "woocommerce_nwsi_automatic_order_sync", "0" );
-          } else {
-            update_option( "woocommerce_nwsi_automatic_order_sync", "1" );
-          }
+          $this->update_additional_settings($_POST);
 
           if ( array_key_exists( "woocommerce_nwsi_consumer_secret", $_POST )
 						&& array_key_exists( "woocommerce_nwsi_consumer_key", $_POST ) ) {
@@ -60,6 +77,7 @@ if ( !class_exists( "NWSI_Settings" ) ) {
               $_POST["woocommerce_nwsi_consumer_key"],
               $_POST["woocommerce_nwsi_consumer_secret"]
             );
+
             if ( !empty( $redirect_uri ) ) {
               header( "Location: " . $redirect_uri );
             }
@@ -145,9 +163,7 @@ if ( !class_exists( "NWSI_Settings" ) ) {
      * Display form for choosing Salesforce and WooCommerce objects for new relationship
      */
     private function display_add_new_relationship_form() {
-
       $sf_objects = $this->sf->get_all_objects();
-
       ?>
       <table class="form-table" id="nwsi-new-relationship-form" >
         <tbody>
@@ -277,7 +293,7 @@ if ( !class_exists( "NWSI_Settings" ) ) {
       } else {
         // default view
         parent::admin_options();
-        $this->display_callback_url_field();
+        $this->display_additional_settings_fields();
 
         if ( $this->sf->has_access_token() ) {
           $this->display_default_settings_page();
@@ -286,15 +302,29 @@ if ( !class_exists( "NWSI_Settings" ) ) {
           wp_localize_script( "nwsi-settings-js", "ajaxObject", array( "url" => admin_url( "admin-ajax.php" ) ) );
         }
       }
-
     }
 
     /**
-     * Echo HTML for Callback URL settings field
+     * Echo HTML for additional settings fields such as callback and login URL
      */
-    private function display_callback_url_field() {
+    private function display_additional_settings_fields() {
+      $login_url = get_option( "woocommerce_nwsi_login_url" );
+      if ( !$login_url ) {
+        $login_url = "";
+      }
       ?>
       <table class="form-table">
+        <tr valign="top">
+          <th scope="row" class="titledesc">
+            <label for="woocommerce_nwsi_login_url"><?php _e( "Login URL", "woocommerce-integration-nwsi" ); ?></label>
+          </th>
+          <td class="forminp">
+            <fieldset>
+              <legend class="screen-reader-text"><span><?php _e( "Login URL", "woocommerce-integration-nwsi" ); ?></span></legend>
+              <input class="input-text regular-input" id="woocommerce_nwsi_login_url" name="woocommerce_nwsi_login_url" type="text" value="<?php echo $login_url; ?>" >
+            </fieldset>
+          </td>
+        </tr>
         <tr valign="top">
           <th scope="row" class="titledesc">
             <label for="woocommerce_nwsi_callback_url"><?php _e( "Callback URL", "woocommerce-integration-nwsi" ); ?></label>
@@ -315,7 +345,6 @@ if ( !class_exists( "NWSI_Settings" ) ) {
      * @override
      */
     public function init_form_fields() {
-
       $this->form_fields = array(
         "consumer_key" => array(
           "title"       => __( "Consumer key", "woocommerce-integration-nwsi" ),
@@ -326,8 +355,8 @@ if ( !class_exists( "NWSI_Settings" ) ) {
           "title"       => __( "Consumer secret", "woocommerce-integration-nwsi" ),
           "type"        => "password",
           "default"     => ""
-          )
-        );
+        )
+      );
     }
 
   }

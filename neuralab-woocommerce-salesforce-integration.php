@@ -99,6 +99,8 @@ if ( nwsi_is_woocommerce_active() ) {
           define( NWSI_FOLDER_NAME, basename( __DIR__ ) );
         }
 
+        update_option( "woocommerce_nwsi_login_url", "https://login.salesforce.com" );
+
         require_once( "includes/controllers/core/class-nwsi-db.php" );
         $db = new NWSI_DB();
         $db->create_relationship_table();
@@ -133,6 +135,8 @@ if ( nwsi_is_woocommerce_active() ) {
         delete_option( "woocommerce_nwsi_refresh_token" );
         delete_option( "woocommerce_nwsi_instance_url" );
         delete_option( "woocommerce_nwsi_automatic_order_sync" );
+        delete_option( "woocommerce_nwsi_connection_hash" );
+        delete_option( "woocommerce_nwsi_login_url" );
 
         require_once( "includes/controllers/core/class-nwsi-db.php" );
         $db = new NWSI_DB();
