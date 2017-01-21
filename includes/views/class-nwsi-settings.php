@@ -15,8 +15,8 @@ if ( !class_exists( "NWSI_Settings" ) ) {
     private $relationship_form;
 
     /**
-    * Class constructor
-    */
+     * Class constructor
+     */
     public function __construct() {
 
       require_once ( "class-nwsi-relationship-form.php" );
@@ -95,10 +95,10 @@ if ( !class_exists( "NWSI_Settings" ) ) {
 		}
 
     /**
-    * Save new or update existing relationship
-    * @param string $rel_type - type of relationship (new or existing)
-    * @return string - status
-    */
+     * Save new or update existing relationship
+     * @param string $rel_type - type of relationship (new or existing)
+     * @return string - status
+     */
     private function manage_relationship_process( $rel_type ) {
 
       $status = "";
@@ -142,8 +142,8 @@ if ( !class_exists( "NWSI_Settings" ) ) {
     }
 
     /**
-    * Display form for choosing Salesforce and WooCommerce objects for new relationship
-    */
+     * Display form for choosing Salesforce and WooCommerce objects for new relationship
+     */
     private function display_add_new_relationship_form() {
 
       $sf_objects = $this->sf->get_all_objects();
@@ -203,8 +203,8 @@ if ( !class_exists( "NWSI_Settings" ) ) {
     }
 
     /**
-    * Echo default settings page for this plugin
-    */
+     * Echo default settings page for this plugin
+     */
     private function display_default_settings_page() {
       ?>
       <hr/>
@@ -247,9 +247,9 @@ if ( !class_exists( "NWSI_Settings" ) ) {
     }
 
     /**
-    * Setup the gateway settings screen
-    * @override
-    */
+     * Setup the gateway settings screen
+     * @override
+     */
     public function admin_options() {
 
       if ( array_key_exists( "rel", $_GET ) && !empty( $_GET["rel"] ) ) {
@@ -260,10 +260,8 @@ if ( !class_exists( "NWSI_Settings" ) ) {
           // form for new relationship
           if ( array_key_exists( "from_label", $_GET ) && !empty( $_GET["from_label"] ) &&
           array_key_exists( "to_label", $_GET ) && !empty( $_GET["to_label"] ) ) {
-
             $from_label = $_GET["from_label"];
             $to_label = $_GET["to_label"];
-
           } else {
             $from_label = $_GET["from"];
             $to_label = $_GET["to"];
@@ -272,7 +270,6 @@ if ( !class_exists( "NWSI_Settings" ) ) {
           $this->relationship_form->display_blank( $_GET["from"], $from_label, $_GET["to"], $to_label );
 
         } else if ( array_key_exists( "key", $_GET ) && !empty( $_GET["key"] ) ) {
-
           // form for already existing relationship
           $this->relationship_form->display_existing( $this->db->get_relationship_by_key( $_GET["key"] ) );
         }
@@ -300,12 +297,12 @@ if ( !class_exists( "NWSI_Settings" ) ) {
       <table class="form-table">
         <tr valign="top">
           <th scope="row" class="titledesc">
-            <label for="woocommerce_nwsi_callback_url">Callback URL</label>
+            <label for="woocommerce_nwsi_callback_url"><?php _e( "Callback URL", "woocommerce-integration-nwsi" ); ?></label>
           </th>
           <td class="forminp">
             <fieldset>
-              <legend class="screen-reader-text"><span>Callback URL</span></legend>
-              <input class="input-text regular-input" id="woocommerce_nwsi_callback_url" type="text" disabled value="<?php echo get_site_url(); ?>/wp-admin/admin.php?page=wc-settings&tab=integration&section=nwsi" >
+              <legend class="screen-reader-text"><span><?php _e( "Callback URL", "woocommerce-integration-nwsi" ); ?></span></legend>
+              <input class="input-text regular-input" id="woocommerce_nwsi_callback_url" type="text" disabled value="<?php echo admin_url(esc_attr__("admin.php?page=wc-settings&tab=integration&section=nwsi"), "https"); ?>" >
             </fieldset>
           </td>
         </tr>
@@ -314,9 +311,9 @@ if ( !class_exists( "NWSI_Settings" ) ) {
     }
 
     /**
-    * Define settings form fields
-    * @override
-    */
+     * Define settings form fields
+     * @override
+     */
     public function init_form_fields() {
 
       $this->form_fields = array(

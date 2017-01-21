@@ -30,12 +30,11 @@ if ( !class_exists( "NWSI_Salesforce_Token_Manager" ) ) {
       $this->cryptor = new NWSI_Cryptor();
       $utility       = new NWSI_Utility();
 
-      $this->redirect_uri = $utility->get_sites_http_protocol() . $_SERVER["HTTP_HOST"]
-      . "/wp-admin/admin.php?page=wc-settings&tab=integration&section=nwsi";
-
+      $this->redirect_uri   = admin_url(esc_attr__("admin.php?page=wc-settings&tab=integration&section=nwsi"), "https");
       $this->access_token   = $this->load_access_token();
       $this->refresh_token  = $this->load_refresh_token();
       $this->instance_url   = get_option( "woocommerce_nwsi_instance_url" );
+
 
       $settings = get_option( "woocommerce_nwsi_settings", null );
       if ( !empty( $settings ) ) {
