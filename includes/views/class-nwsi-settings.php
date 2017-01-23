@@ -104,9 +104,9 @@ if ( !class_exists( "NWSI_Settings" ) ) {
 			} else if ( !empty( $_GET["rel"] ) && !empty( $_POST ) ) {
 
 				$status = $this->manage_relationship_process( $_GET["rel"] );
-        $redirect_uri = $this->utility->get_sites_http_protocol() . $_SERVER["HTTP_HOST"];
-        $redirect_uri .= $_SERVER["PHP_SELF"] . "?page=" . $_GET["page"] . "&tab=" . $_GET["tab"];
-        $redirect_uri .= "&section=" . $_GET["section"] . "&status=" . $status;
+        $redirect_uri = admin_url("admin.php", "https")
+          . "?page=" . $_GET["page"] . "&tab=" . $_GET["tab"]
+          . "&section=" . $_GET["section"] . "&status=" . $status;
 
         header( "Location: " . $redirect_uri );
 			}
@@ -151,10 +151,10 @@ if ( !class_exists( "NWSI_Settings" ) ) {
     private function obtain_access_token( $code ) {
       $status = $this->sf->get_access_token( $code );
 
-  	  $redirect_uri = $this->utility->get_sites_http_protocol() . $_SERVER["HTTP_HOST"];
-  	  $redirect_uri .= $_SERVER["PHP_SELF"] . "?page=" . $_GET["page"] . "&tab=" . $_GET["tab"];
-  	  $redirect_uri .= "&section=" . $_GET["section"];
-  	  $redirect_uri .= "&status=" . $status . "&source=access_token";
+  	  $redirect_uri = admin_url("admin.php", "https")
+        . "?page=" . $_GET["page"] . "&tab=" . $_GET["tab"]
+  	    . "&section=" . $_GET["section"]
+  	    . "&status=" . $status . "&source=access_token";
 
   	  return $redirect_uri;
     }
@@ -237,16 +237,18 @@ if ( !class_exists( "NWSI_Settings" ) ) {
         $this->relationships_table->process_bulk_action();
         $relationships = $this->db->get_relationships();
 
+        $date_time_format = get_option( "date_format" ) . " " . get_option( "time_format" );
         $data = array();
         foreach( $relationships as $relationship ) {
           $temp = array();
 
           $temp["id"]           = $relationship->id;
-          $temp["date-created"] = date( "d.m.Y H:i:s", strtotime( $relationship->date_created ) );
-          $temp["date-updated"] = date( "d.m.Y H:i:s", strtotime( $relationship->date_updated ) );
+          $temp["date-created"] = date( $date_time_format, strtotime( $relationship->date_created ) );
+          $temp["date-updated"] = date( $date_time_format, strtotime( $relationship->date_updated ) );
           $temp["active"]       = ( intval( $relationship->active ) == 1 ) ? "Yes" : "No";
-          $temp["relationship"] = "<a href='" . $this->utility->get_sites_http_protocol() . $_SERVER["HTTP_HOST"]
-          . $_SERVER["REQUEST_URI"] . "&rel=existing&key=" . $relationship->hash_key . "'>" . "<b>"
+          $temp["relationship"] = "<a href='" . admin_url("admin.php", "https")
+          . "?page=wc-settings&tab=integration&section=nwsi"
+          . "&rel=existing&key=" . $relationship->hash_key . "'>" . "<b>"
           . $relationship->to_object_label . " - " . $relationship->from_object_label . "</b> </a>";
 
           array_push( $data, $temp );

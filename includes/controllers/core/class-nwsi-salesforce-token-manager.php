@@ -125,12 +125,15 @@ if ( !class_exists( "NWSI_Salesforce_Token_Manager" ) ) {
       return $new_connection_hash === $old_connection_hash;
     }
 
+    /**
+     * Set login URI used for token management
+     * @param string $login_uri 
+     */
     public function set_login_uri( $login_uri ) {
       if ( !empty( $login_uri ) && is_string( $login_uri ) ) {
         $this->login_uri = $login_uri;
       }
     }
-
 
     /**
      * Return Salesforce authentication page URL

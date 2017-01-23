@@ -61,18 +61,5 @@ if ( !class_exists( "NWSI_Utility" ) ) {
       return $content;
     }
 
-    /**
-    * Return used protocol, HTTP or HTTPS
-    * @return string
-    */
-    public function get_sites_http_protocol() {
-      if ( isset( $_SERVER["HTTPS"] ) && ( $_SERVER["HTTPS"] == "on" || $_SERVER["HTTPS"] == 1 ) ||
-      isset( $_SERVER["HTTP_X_FORWARDED_PROTO"] ) && $_SERVER["HTTP_X_FORWARDED_PROTO"] == "https" ) {
-        return "https://";
-      } else {
-        return "http://";
-      }
-    }
-
   }
 }
