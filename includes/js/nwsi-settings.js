@@ -1,4 +1,46 @@
 ( function( $ ) {
+  cleanGETParams();
+
+  /**
+   * Remove status and source GET parameters from URL
+   */
+  function cleanGETParams() {
+    var currentURL = window.location.href;
+    var URLParts = currentURL.split("?");
+
+    if ( URLParts.length >= 2 ) {
+      if ( URLParts[1].indexOf("page=wc-settings") !== -1
+        && URLParts[1].indexOf("tab=integration") !== -1
+        && URLParts[1].indexOf("section=nwsi") !== -1 ) {
+
+        var URLBase           = URLParts[0];
+        var GETParams         = URLParts[1].split("&");
+        var filteredGETParams = "";
+
+        var isFirst = true;
+        $.each( GETParams, function(index, param) {
+          if ( param.indexOf("status=") === -1 && param.indexOf("source=") === -1 ) {
+            if ( isFirst ) {
+              isFirst = false;
+              filteredGETParams += "?";
+            } else {
+              filteredGETParams += "&";
+            }
+            filteredGETParams += param;
+          }
+        });
+
+        if ( filteredGETParams.length > 0 && window.history.replaceState ) {
+          window.history.replaceState( {}, null, URLBase + filteredGETParams );
+        }
+      }
+    }
+
+    // if (window.history.replaceState) {
+    //  //prevents browser from storing history with each change:
+    //  window.history.replaceState(statedata, title, url);
+    // }
+  }
   /**
    * Add new relationship after "Add" button click
    */
