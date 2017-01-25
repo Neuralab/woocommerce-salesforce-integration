@@ -68,7 +68,7 @@ if ( nwsi_is_woocommerce_active() ) {
           new NWSI_Orders_View();
             //TODO: Find a better way of doing this
            add_action('admin_enqueue_scripts', function() {
-                wp_enqueue_style( "nwsi-settings-style", plugins_url( "/includes/style/nwsi-settings.css", FILE ) );
+                wp_enqueue_style( "nwsi-settings-style", plugins_url( "/includes/style/nwsi-settings.css", __FILE__ ) );
             });
         }
 
