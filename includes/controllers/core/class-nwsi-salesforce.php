@@ -56,6 +56,13 @@ if ( !class_exists( "NWSI_Salesforce" ) ) {
           }
           $response = wp_remote_post( $url, $args );
           break;
+        case "delete":
+          $args["method"] = "DELETE";
+          if ( $params != "" ) {
+            $args["body"] = $params;
+          }
+          $response = wp_remote_post( $url, $args );
+          break;
         default:
           return array();
       }

@@ -40,6 +40,10 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
           $get_object_response = $this->get_object( $name, $get_values );
           // if object with the same values of unique field/s exists, return his ID
           if ( $get_object_response["success"] ) {
+            // if an order exists, delete order's items so they can be added after
+            if ( $name === "Order" ) {
+              $this->delete_orders_items( $get_object_response["id"] );
+            }
             return $get_object_response;
           }
         }
@@ -51,7 +55,7 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
 
       if ( !$no_error_handling ) {
         $error_response = $this->get_error_status( $sf_response );
-  
+
         if ( $error_response == "solved" ) {
           $sf_response = $this->get_response( $url, true, "post", json_encode( $values ), "application/json" );
         } else if ( $error_response == "duplicate value" ) {
@@ -203,8 +207,8 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
      * @return array
      */
     private function query_products() {
-      $query = "SELECT Product2.Id, Product2.Name, Product2.ProductCode, Product2.Description, Product2.isActiveOnlineProduct__c, "
-      . "Product2.Product_4D_Wand_ID__c, PricebookEntry.UnitPrice FROM PricebookEntry";
+      $query = "SELECT Product2.Id, Product2.Name, Product2.ProductCode, Product2.Description, "
+      . "Product2.isActiveOnlineProduct__c, PricebookEntry.UnitPrice FROM PricebookEntry";
 
       $url = $this->instance_url . "/services/data/" . $this->api_version . "/query?q=" . urlencode( $query );
 
@@ -291,5 +295,20 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
       return "none";
     }
 
+    /**
+     * Delete all OrderItems connected to an Order with given ID
+     * @param string $order_id
+     */
+     private function delete_orders_items( $order_id ) {
+       $query = "SELECT Id FROM OrderItem WHERE OrderId='" . $order_id . "'";
+
+       $url = $this->instance_url . "/services/data/" . $this->api_version . "/query?q=" . urlencode( $query );
+       $order_items_response = $this->get_response( $url );
+       foreach( $order_items_response["records"] as $order_item ) {
+         $url_delete = $this->instance_url . "/services/data/" . $this->api_version . "/sobjects/OrderItem/" . urlencode( $order_item["Id"] );
+         $this->get_response( $url_delete, true, "delete" );
+       }
+
+     }
   }
 }

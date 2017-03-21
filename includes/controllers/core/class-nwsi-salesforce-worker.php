@@ -123,7 +123,7 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
           }
         }
       } // for each relationship
-
+      
       // handle order sync response
       $this->handle_order_sync_response( $order_id, $sync_order_success, $sync_order_error_message );
     }
