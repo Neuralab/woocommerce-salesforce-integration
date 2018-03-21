@@ -32,22 +32,31 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
     }
 
     /**
-     * Echo form for creating the new relationships
-     * @param string  $from - WooCommerce object name
-     * @param string  $from_label - WooCommerce object label
-     * @param string  $to - Salesforce object name
-     * @param string  $to_label - Salesforce object label
-     * @param array   $relationships - existing relationship values
-     * @param array   $required_sf_objects - array of required SF objects
-     * @param array   $unique_sf_fields - array of unique SF fields
+     * Echo HTML form for creating new relationships.
+     *
+     * @param string  $from                 WooCommerce object name.
+     * @param string  $from_label           WooCommerce object label.
+     * @param string  $to                   Salesforce object name.
+     * @param string  $to_label             Salesforce object label.
+     * @param array   $relationships        Existing relationship values.
+     * @param array   $required_sf_objects  Array of required SF objects.
+     * @param array   $unique_sf_fields     Array of unique SF fields.
      */
     public function display_blank( $from, $from_label, $to, $to_label, $relationships = array(), $required_sf_objects = array(), $unique_sf_fields = array() ) {
 
       $wc_object_description = $this->get_wc_object_description( $from );
       $sf_object_description = $this->sf->get_object_description( $to );
-      // var_dump( $sf_object_description );
+
       $this->display_title( empty( $relationships ) );
-      $this->display_main_section( $from_label, $to_label, $sf_object_description, $wc_object_description, $relationships );
+
+      $this->display_main_section(
+        $from_label,
+        $to_label,
+        $sf_object_description,
+        $wc_object_description,
+        $relationships
+      );
+
       $this->display_unique_section( $unique_sf_fields, $sf_object_description );
       $this->display_required_objects_section( $sf_object_description, $required_sf_objects, $to, $to_label );
 
@@ -55,8 +64,9 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
     }
 
     /**
-     * Echo form title
-     * @param $is_new
+     * Echo form title.
+     *
+     * @param boolean $is_new
      */
     private function display_title( $is_new ) {
       ?>
@@ -353,19 +363,20 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
     }
 
     /**
-     * Return option element
-     * @param string    $name
-     * @param string    $value
-     * @param boolean   $is_selected
+     * Return an option HTML element as a string.
+     *
+     * @param string  $name
+     * @param string  $value
+     * @param boolean $is_selected
      * @return string
      */
-		private function generate_option_element( $name, $value, $is_selected = false ) {
-			$option_element .= "<option value='" . $value . "'";
-			if ( $is_selected ) {
-				$option_element .= " selected ";
-			}
-			return $option_element . ">" . $name . "</option>";
-		}
+    private function generate_option_element( $name, $value, $is_selected = false ) {
+      $option_element = "<option value='" . $value . "'";
+      if ( $is_selected ) {
+        $option_element .= " selected ";
+      }
+      return $option_element . ">" . $name . "</option>";
+    }
 
     /**
      * Return select HTML element
@@ -377,51 +388,52 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
      * @param string   $type - type of corresponding SF field, default = ""
      * @return string - representing HTML element
      */
-		private function generate_select_element( $fields, $name, $selected = "", $ignore_refrences = false, $required = false, $type = "" ) {
+    private function generate_select_element( $fields, $name, $selected = "", $ignore_refrences = false, $required = false, $type = "" ) {
 
       $select_element = "<select";
       if ( $required ) {
-				$select_element .= " required ";
+        $select_element .= " required ";
       }
-			$select_element .= " id='" . $name . "' name='". $name . "' >";
-			$select_element .= "<option value=''>None</option>";
+      $select_element .= " id='" . $name . "' name='". $name . "' >";
+      $select_element .= "<option value=''>None</option>";
 
-			if ( !empty( $type ) ) {
-				if ( in_array( $type, array( "string", "double", "integer", "url", "phone", "textarea" ) ) ) {
-					array_push( $fields, array( "name" => "custom-value", "label" => "Custom value" ) );
-				} else if ( $type == "date" ) {
-					array_push( $fields, array( "name" => "custom-current-date", "label" => "Current Date" ) );
-				} else if ( $type == "boolean" ) {
-					array_push( $fields, array( "name" => "custom-true", "label" => "True" ) );
-					array_push( $fields, array( "name" => "custom-false", "label" => "False" ) );
-				}
-			}
+      if ( !empty( $type ) ) {
+        if ( in_array( $type, array( "string", "double", "integer", "url", "phone", "textarea" ) ) ) {
+          array_push( $fields, array( "name" => "custom-value", "label" => "Custom value" ) );
+        } else if ( $type == "date" ) {
+          array_push( $fields, array( "name" => "custom-current-date", "label" => "Current Date" ) );
+        } else if ( $type == "boolean" ) {
+          array_push( $fields, array( "name" => "custom-true", "label" => "True" ) );
+          array_push( $fields, array( "name" => "custom-false", "label" => "False" ) );
+        }
+      }
 
-			foreach( $fields as $field ) {
-				// field check
-				if ( $ignore_refrences ) {
-					if ( !$field["createable"] || $field["deprecatedAndHidden"] || $field["type"] == "reference" ) {
-						continue;
-					}
-				}
-				if( array_key_exists( "active", $field ) && !$field["active"] ) {
-					continue;
-				}
+      foreach( $fields as $field ) {
+        // field check
+        if ( $ignore_refrences ) {
+          if ( !$field["createable"] || $field["deprecatedAndHidden"] || $field["type"] == "reference" ) {
+            continue;
+          }
+        }
 
-				if ( array_key_exists( "value", $field ) && !array_key_exists( "name", $field ) ) {
-					$field["name"] = $field["value"];
-				}
+        if( array_key_exists( "active", $field ) && !$field["active"] ) {
+          continue;
+        }
 
-				if ( $selected == $field["name"] ) {
-					$select_element .= $this->generate_option_element( $field["label"], $field["name"], true );
-				} else {
-					$select_element .= $this->generate_option_element( $field["label"], $field["name"]);
-				}
-			}
+        if ( array_key_exists( "value", $field ) && !array_key_exists( "name", $field ) ) {
+          $field["name"] = $field["value"];
+        }
 
-			$select_element .= "</select>";
-			return $select_element;
-		}
+        if ( $selected == $field["name"] ) {
+          $select_element .= $this->generate_option_element( $field["label"], $field["name"], true );
+        } else {
+          $select_element .= $this->generate_option_element( $field["label"], $field["name"]);
+        }
+      }
+
+      $select_element .= "</select>";
+      return $select_element;
+    }
 
     /**
      * Return WooCommerce object descriptions (attribute names)
@@ -429,9 +441,7 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
      * @return array
      */
     private function get_wc_object_description( $type ) {
-
       if( !empty( $type ) ) {
-
         switch( strtolower( $type ) ) {
           case "order product":
             $model = new NWSI_Order_Product_Model();
