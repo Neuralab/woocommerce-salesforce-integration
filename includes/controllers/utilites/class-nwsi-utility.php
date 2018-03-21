@@ -4,22 +4,23 @@ if ( !defined( "ABSPATH" ) ) {
 }
 
 
-/**
- * Basic methods used in different plugins classes
- */
 if ( !class_exists( "NWSI_Utility" ) ) {
+  /**
+   * Basic helper methods used in the plugin.
+   */
   class NWSI_Utility {
 
     /**
-    * Saves content to defined file
-    * @deprecated
+    * Save content to the defined file. It is assumed that the $dir is located
+    * in the plugin's root directory.
+    *
     * @param string $filename
-    * @param string foldername
+    * @param string $dir
     * @param string $content
     * @return boolean
     */
-    public function save_to_file( $filename, $foldername, $content ) {
-      $filepath = ABSPATH . "wp-content/plugins/" . NWSI_FOLDER_NAME . "/". $foldername . "/" . $filename;
+    public function save_to_file( $filename, $dir, $content ) {
+      $filepath = NWSI_DIR_PATH . $dir . "/" . $filename;
       $handle = fopen( $filepath, "w" );
 
       fwrite( $handle, $content );
@@ -29,21 +30,16 @@ if ( !class_exists( "NWSI_Utility" ) ) {
     }
 
     /**
-    * Load content from file
+    * Load content from the file and, optionally, decode it from JSON.
+    * It is assumed that the $dir is located in the plugin's root directory.
+    *
     * @param string  $filename
-    * @param string  $foldername
-    * @param boolean $json_decode - default=true
-    * @return mixed string or array/object if $json_decode=true
+    * @param string  $dir
+    * @param boolean $json_decode Defaults to true.
+    * @return string|array|object
     */
-    public function load_from_file( $filename, $foldername, $json_decode = true ) {
-
-      if ( defined( "NWSI_FOLDER_NAME" ) ) {
-        $root_foldername = NWSI_FOLDER_NAME;
-      } else {
-        $root_foldername = "woocommerce-salesforce-integration";
-      }
-
-      $filepath = ABSPATH . "wp-content/plugins/" . $root_foldername . "/" . $foldername . "/" . $filename;
+    public function load_from_file( $filename, $dir, $json_decode = true ) {
+      $filepath = NWSI_DIR_PATH . $dir . "/" . $filename;
       $handle = fopen( $filepath, "r" );
 
       $filesize = filesize( $filepath );

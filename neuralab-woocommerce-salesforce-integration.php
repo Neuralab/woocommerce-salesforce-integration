@@ -1,60 +1,86 @@
 <?php
 /**
 * Plugin Name: Neuralab WooCommerce SalesForce Integration
-* Plugin URI: https://neuralab.net
+* Plugin URI: https://github.com/Neuralab/WooCommerce-Salesforce-integration
 * Description: WooCommerce SalesForce Integration
-* Version: 0.9
+* Version: 0.9.1
 * Author: Neuralab
 * Author URI: https://neuralab.net
-* License:
-* Requires at least: 4.4
+* Developer: matej@neuralab
+* Text Domain: woocommerce-integration-nwsi
+*
+* WC requires at least: 3.3
+* WC tested up to: 3.3.4
+*
+* License: MIT
+* Requires at least: 4.9
 */
 
 if ( !defined( "ABSPATH" ) ) {
   exit;
 }
 
-/**
-* Return true if Woocommerce plugin is active
-* @return boolean
-*/
-function nwsi_is_woocommerce_active() {
-  if ( in_array( "woocommerce/woocommerce.php", apply_filters( "active_plugins", get_option( "active_plugins" ) ) ) ) {
-    return true;
+
+if ( !function_exists( "nwsi_is_woocommerce_active" ) ) {
+  /**
+  * Return true if Woocommerce plugin is active
+  * @return boolean
+  */
+  function nwsi_is_woocommerce_active() {
+    if ( in_array( "woocommerce/woocommerce.php", apply_filters( "active_plugins", get_option( "active_plugins" ) ) ) ) {
+      return true;
+    }
+    return false;
   }
-  return false;
 }
 
-/**
-* Echo admin notice HTML for missing WooCommerce plugin
-*/
-function nwsi_admin_notice_missing_woocommerce() {
-  global $current_screen;
-
-  if( $current_screen->parent_base == "plugins" ) {
-    ?>
-    <div class="notice notice-error">
-      <p><?php _e( "Please install and activate <a href='http://www.woothemes.com/woocommerce/' target='_blank'>WooCommerce</a> before activating the WooCommerce SalesForce Integration!", "woocommerce-integration-nwsi" ); ?></p>
-    </div>
-    <?php
+if ( !function_exists( "nwsi_admin_notice_missing_woocommerce" ) ) {
+  /**
+  * Echo admin notice HTML for missing WooCommerce plugin
+  */
+  function nwsi_admin_notice_missing_woocommerce() {
+    global $current_screen;
+    if( $current_screen->parent_base === "plugins" ) {
+      ?>
+      <div class="notice notice-error">
+        <p><?php _e( "Please install and activate <a href='https://woocommerce.com/' target='_blank'>WooCommerce</a> before activating the Neuralab WooCommerce SalesForce Integration plugin!", "woocommerce-integration-nwsi" ); ?></p>
+      </div>
+      <?php
+    }
   }
 }
 
 if ( nwsi_is_woocommerce_active() ) {
-  if ( !class_exists( "WC_Salesforce_Integration" ) ) {
+  if ( !class_exists( "NWSI_Main" ) ) {
+    /**
+     * Main plugin's class. Holds installation and init methods.
+     */
     class NWSI_Main {
 
-      const VERSION = "0.9";
+      /**
+       * Current version of the plugin.
+       *
+       * @var string
+       */
+      const VERSION = "0.9.1";
+
+      /**
+       * Singleton instance.
+       *
+       * @var NWSI_Main
+       */
       protected static $instance = null;
+
+      /**
+       * @var NWSI_Salesforce_Worker
+       */
       private $worker;
 
       /**
-       * Class constructor
+       * Class constructor, initialize essential classes and hooks.
        */
       protected function __construct() {
-        if ( !defined( "NWSI_FOLDER_NAME" ) ) {
-          define( NWSI_FOLDER_NAME, basename( __DIR__ ) );
-        }
+        $this->define_plugin_constants();
 
         require_once( "includes/controllers/core/class-nwsi-salesforce-object-manager.php" );
         require_once( "includes/controllers/core/class-nwsi-salesforce-worker.php" );
@@ -66,10 +92,10 @@ if ( nwsi_is_woocommerce_active() ) {
         if ( is_admin() ) {
           require_once( "includes/views/class-nwsi-orders-view.php" );
           new NWSI_Orders_View();
-            //TODO: Find a better way of doing this
-           add_action('admin_enqueue_scripts', function() {
-                wp_enqueue_style( "nwsi-settings-style", plugins_url( "/includes/style/nwsi-settings.css", __FILE__ ) );
-            });
+          //TODO: Find a better way of doing this
+          add_action('admin_enqueue_scripts', function() {
+            wp_enqueue_style( "nwsi-settings-style", plugins_url( "/includes/style/nwsi-settings.css", __FILE__ ) );
+          });
         }
 
         $this->worker = new NWSI_Salesforce_Worker();
@@ -79,7 +105,20 @@ if ( nwsi_is_woocommerce_active() ) {
       }
 
       /**
-       * Process order
+       * Define all the constants used in plugin.
+       */
+      private static function define_plugin_constants() {
+        if ( !defined( "NWSI_DIR_NAME" ) ) {
+          define( "NWSI_DIR_NAME", basename( __DIR__ ) );
+        }
+
+        if ( !defined( "NWSI_DIR_PATH" ) ) {
+          define( "NWSI_DIR_PATH", plugin_dir_path( __FILE__ ) );
+        }
+      }
+
+      /**
+       * Process order.
        * @param int $order_id
        */
       public function process_order( $order_id ) {
@@ -89,16 +128,14 @@ if ( nwsi_is_woocommerce_active() ) {
       }
 
       /**
-       * Create plugins table and triggers in DB
+       * Create plugins table and triggers in DB.
        */
       public static function install() {
         if ( !current_user_can( "activate_plugins" ) ) {
-  	      return;
-        }
-        if ( !defined( "NWSI_FOLDER_NAME" ) ) {
-          define( NWSI_FOLDER_NAME, basename( __DIR__ ) );
+          return;
         }
 
+        NWSI_Main::define_plugin_constants();
         update_option( "woocommerce_nwsi_login_url", "https://login.salesforce.com" );
 
         require_once( "includes/controllers/core/class-nwsi-db.php" );
@@ -122,12 +159,11 @@ if ( nwsi_is_woocommerce_active() ) {
       }
 
       /**
-       * Delete plugins table and related WP options
+       * Delete plugin tables and related WP options.
        */
       public static function uninstall() {
-
         if ( !current_user_can( "activate_plugins" ) ) {
-  	      return;
+          return;
         }
 
         delete_option( "woocommerce_nwsi_settings" );
@@ -147,8 +183,9 @@ if ( nwsi_is_woocommerce_active() ) {
       }
 
       /**
-       * Return integrations array with new section element.
-       * Needed for woocommerce_integrations filter hook
+       * Return integrations array with new section element. Needed for
+       * woocommerce_integrations filter hook.
+       *
        * @param array $integrations
        * @return array
        */
@@ -158,7 +195,8 @@ if ( nwsi_is_woocommerce_active() ) {
       }
 
       /**
-       * Return class instance
+       * Return class instance.
+       *
        * @return NWSI_Main
        */
       public static function get_instance() {
@@ -169,14 +207,14 @@ if ( nwsi_is_woocommerce_active() ) {
       }
 
       /**
-       * Cloning is forbidden
+       * Cloning is forbidden.
        */
       public function __clone() {
         _doing_it_wrong( __FUNCTION__, __( "Cloning is forbidden!", "woocommerce-integration-nwsi" ), "4.0" );
       }
 
       /**
-       * Unserializing instances of this class is forbidden
+       * Unserializing instances of this class is forbidden.
        */
       public function __wakeup() {
         _doing_it_wrong( __FUNCTION__, __( "Unserializing instances is forbidden!", "woocommerce-integration-nwsi" ), "4.0" );
