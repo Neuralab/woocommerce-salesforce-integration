@@ -114,7 +114,7 @@ if ( nwsi_is_woocommerce_active() ) {
           if ( !empty( $relationships ) ) {
             foreach( $relationships as $relationship ) {
               $db->save_new_relationship( $relationship->from_object, $relationship->from_object_label,
-              $relationship->to_object, $relationship->to_object_label, $relationship->relationships,
+              $relationship->to_object, $relationship->to_object_label, json_encode( $relationship->relationships ),
               $relationship->required_sf_objects, $relationship->unique_sf_fields );
             }
           }
