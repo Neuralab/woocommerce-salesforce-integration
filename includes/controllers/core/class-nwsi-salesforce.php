@@ -10,11 +10,11 @@ if ( !class_exists( "NWSI_Salesforce" ) ) {
 
     /**
      * Make a call to the API
-     * @param string 	$url
-     * @param boolean	$authorization
-     * @param string 	$type - get (default) or post
-     * @param string 	$params
-     * @param string	$content_type
+     * @param string  $url
+     * @param boolean $authorization
+     * @param string  $type - get (default) or post
+     * @param string  $params
+     * @param string  $content_type
      * @return array
      */
     public function get_response( $url, $authorization = true, $type = "get", $params = "", $content_type = "" ) {
@@ -75,48 +75,6 @@ if ( !class_exists( "NWSI_Salesforce" ) ) {
       } catch( Exception $exc ) {
         return array();
       }
-    }
-
-    /**
-     * Make a call to the API using cURL
-     * @deprecated
-     * @param string 	$url
-     * @param boolean	$authorization
-     * @param string 	$type - get (default) or post
-     * @param string 	$params
-     * @param string	$content_type
-     * @return array
-     */
-    public function get_response_curl_v( $url, $authorization = true, $type = "get", $params = "", $content_type = "" ) {
-      $http_header = array();
-      $curl = curl_init( $url );
-      curl_setopt( $curl, CURLOPT_HEADER, false );
-      curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-      $http_header = array();
-
-      if ( $authorization ) {
-        array_push( $http_header, "Authorization: OAuth $this->access_token" );
-      }
-      if ( strtolower( $type ) == "post" ) {
-        curl_setopt( $curl, CURLOPT_POST, true );
-      }
-
-      if ( !empty( $content_type ) ) {
-        // e.g. application/json
-        array_push( $http_header, "Content-type: " . $content_type );
-      }
-
-      if ( !empty( $params ) ) {
-        curl_setopt( $curl, CURLOPT_POSTFIELDS, $params );
-      }
-
-      if ( !empty( $http_header ) ) {
-        curl_setopt( $curl, CURLOPT_HTTPHEADER, $http_header );
-      }
-
-      $json_response = curl_exec( $curl );
-      curl_close( $curl );
-      return json_decode( $json_response, true );
     }
 
   }
