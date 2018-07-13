@@ -76,7 +76,7 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
       $this->display_unique_section( $unique_sf_fields, $sf_object_description );
       $this->display_required_objects_section( $sf_object_description, $required_sf_objects, $to, $to_label );
 
-      wp_enqueue_script( "nwsi-settings-js", plugins_url("../js/nwsi-settings.js", __FILE__ ), array( "jquery" ) );
+      wp_enqueue_script( "nwsi-settings-js", NWSI_DIR_URL . "includes/js/nwsi-settings.js", array( "jquery" ) );
     }
 
     /**

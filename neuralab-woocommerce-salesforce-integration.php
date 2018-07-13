@@ -115,6 +115,10 @@ if ( nwsi_is_woocommerce_active() ) {
         if ( !defined( "NWSI_DIR_PATH" ) ) {
           define( "NWSI_DIR_PATH", plugin_dir_path( __FILE__ ) );
         }
+
+        if ( !defined( "NWSI_DIR_URL" ) ) {
+          define( "NWSI_DIR_URL", plugins_url( "/", __FILE__ ) );
+        }
       }
 
       /**
