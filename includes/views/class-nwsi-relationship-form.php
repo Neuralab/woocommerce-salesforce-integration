@@ -4,31 +4,48 @@ if ( !defined( "ABSPATH" ) ) {
 }
 
 if ( !class_exists( "NWSI_Relationships_Form" ) ) {
+  /**
+   * View class for managing single relationship form.
+   */
   class NWSI_Relationships_Form {
 
+    /**
+     * @var NWSI_Salesforce_Object_Manager
+     */
     private $sf;
 
-    public function __construct( $sf ) {
-
-      require_once ( plugin_dir_path( __FILE__ ) . "../models/class-nwsi-order-model.php" );
-      require_once ( plugin_dir_path( __FILE__ ) . "../models/class-nwsi-order-product-model.php" );
+    /**
+     * Initialize class attributes.
+     * @param NWSI_Salesforce_Object_Manager $sf
+     */
+    public function __construct( NWSI_Salesforce_Object_Manager $sf ) {
+      require_once ( NWSI_DIR_PATH . "includes/models/class-nwsi-order-model.php" );
+      require_once ( NWSI_DIR_PATH . "includes/models/class-nwsi-product-model.php" );
 
       $this->sf = $sf;
     }
 
     /**
-     * Echo form for editing the existing relationship
-     * @param string $rel - relationship object
+     * Echo form for editing the existing relationship provided as a parameter.
+     * Existing relationship should contain properties:
+     * [relationships]        => array
+     * [from_object]          => string
+     * [from_object_label]    => string
+     * [to_object]            => string
+     * [to_object_label]      => string
+     * [required_sf_objects]  => array
+     * [unique_sf_fields]     => array
+     *
+     * @param stdClass $rel Relationship object.
      */
-    public function display_existing( $rel ) {
-      if ( !empty( $rel ) ) {
-        $this->display_blank( $rel->from_object, $rel->from_object_label,
+    public function display_existing( stdClass $rel ) {
+      $this->display_blank(
+        $rel->from_object, $rel->from_object_label,
         $rel->to_object, $rel->to_object_label,
         json_decode( $rel->relationships ),
         json_decode( $rel->required_sf_objects ),
-        json_decode( $rel->unique_sf_fields ) );
-      }
-
+        json_decode( $rel->unique_sf_fields )
+      );
     }
 
     /**
@@ -38,12 +55,11 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
      * @param string  $from_label           WooCommerce object label.
      * @param string  $to                   Salesforce object name.
      * @param string  $to_label             Salesforce object label.
-     * @param array   $relationships        Existing relationship values.
-     * @param array   $required_sf_objects  Array of required SF objects.
-     * @param array   $unique_sf_fields     Array of unique SF fields.
+     * @param array   $relationships        Existing relationship values, defaults to empty array.
+     * @param array   $required_sf_objects  Array of required SF objects, defaults to empty array.
+     * @param array   $unique_sf_fields     Array of unique SF fields, defaults to empty array.
      */
-    public function display_blank( $from, $from_label, $to, $to_label, $relationships = array(), $required_sf_objects = array(), $unique_sf_fields = array() ) {
-
+    public function display_blank( string $from, string $from_label, string $to, string $to_label, array $relationships = array(), array $required_sf_objects = array(), array $unique_sf_fields = array() ) {
       $wc_object_description = $this->get_wc_object_description( $from );
       $sf_object_description = $this->sf->get_object_description( $to );
 
@@ -83,14 +99,15 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
     }
 
     /**
-     * Echo main form inputs for editing existing or creating a new relationship
-     * @param string  $from_label - WooCommerce object label
-     * @param string  $to_label - Salesforce object label
+     * Echo main form inputs for editing existing or creating a new relationship.
+     *
+     * @param string  $from_label             WooCommerce object label.
+     * @param string  $to_label               Salesforce object label.
      * @param array   $sf_object_description
      * @param array   $wc_object_description
-     * @param array   $relationships - existing relationship values
+     * @param array   $relationships          Existing relationship values.
      */
-    private function display_main_section( $from_label, $to_label, $sf_object_description, $wc_object_description, $relationships ) {
+    private function display_main_section( string $from_label, string $to_label, array $sf_object_description, array $wc_object_description, array $relationships ) {
       ?>
       <table class="form-table" id="nwsi-new-relationship-form" >
         <thead>
@@ -126,8 +143,8 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
             <td class="forminp">
               <?php
               $selected = $source = $type = $value = "";
-              foreach( $relationships as $relationship ) {
-                if( $relationship->to == $sf_field["name"] ) {
+              foreach ( $relationships as $relationship ) {
+                if ( $relationship->to == $sf_field["name"] ) {
 
                   if ( $relationship->from == "salesforce" ) {
                     $selected = $relationship->value;
@@ -142,11 +159,21 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
                   } else {
                     $selected = $relationship->from;
                   }
-                  $source = ( empty( $relationship->source ) ) ? "woocommerce" : $relationship->source;
-                  $type = $relationship->type;
-                  $value = $relationship->value;
-                  break;
 
+                  if ( property_exists( $relationship, "source" ) ) {
+                    $source = $relationship->source;
+                  } else {
+                    $source = "woocommerce";
+                  }
+
+                  if ( property_exists( $relationship, "type" ) ) {
+                    $type = $relationship->type;
+                  }
+
+                  if ( property_exists( $relationship, "value" ) ) {
+                    $value = $relationship->value;
+                  }
+                  break;
                 }
               }
               ?>
@@ -188,10 +215,11 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
     /**
      * Echo form part for adding unique fields for Salesforce object that user
      * is editing or creating.
+     *
      * @param array $unique_sf_fields
      * @param array $sf_object_description
      */
-    private function display_unique_section( $unique_sf_fields, $sf_object_description ) {
+    private function display_unique_section( array $unique_sf_fields, array $sf_object_description ) {
       ?>
       <div id="nwsi-unique-sf-fields-wrapper" class="nwsi-new-relationship-form-metabox">
         <h4>Unique fields</h4>
@@ -218,14 +246,16 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
     }
 
     /**
-     * Echo select element for required objects section
-     * @param string  $name
-     * @param array   $sf_objects
-     * @param string  $selected
-     * @param boolean $hidden
-     * @return boolean - is any option selected
+     * Echo select element for required objects section.
+     *
+     * @param  string  $name
+     * @param  array   $sf_objects
+     * @param  string  $selected_name
+     * @param  string  $selected_id
+     * @param  boolean $hidden        Defaults to false.
+     * @return boolean                Is any option selected.
      */
-    private function display_required_objects_select_element( $name, $sf_objects, $selected_name, $selected_id, $hidden = false ) {
+    private function display_required_objects_select_element( string $name, array $sf_objects, string $selected_name, string $selected_id, bool $hidden = false ) {
       $is_selected = false;
       $class = "";
       if ( $hidden ) {
@@ -250,11 +280,13 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
     /**
      * Echo form part for defining required object for sync object that user is
      * currently editing or creating.
+     *
      * @param array   $sf_object_description
      * @param array   $required_sf_objects
-     * @param string  $to - sf object that is being conntected
+     * @param string  $to                     Salesforce object that is being connected.
+     * @param string  $to_label
      */
-    private function display_required_objects_section( $sf_object_description, $required_sf_objects, $to, $to_label ) {
+    private function display_required_objects_section( array $sf_object_description, array $required_sf_objects, string $to, string $to_label ) {
       $sf_objects_raw = $this->sf->get_all_objects();
       $sf_objects = array();
 
@@ -280,7 +312,6 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
           ) );
         }
       }
-      // var_dump( $sf_objects );
 
       $counter = 0;
       ?>
@@ -317,60 +348,60 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
     }
 
     /**
-     * Return select HTML element with given name and options from Salesforce
-     * @param array   $fields - Salesforce object fields
-     * @param string  $name - name of the select element
-     * @param string  $selected - name of the selected option
-     * @return string - representing HTML element
+     * Return select HTML element with given name and options from Salesforce.
+     *
+     * @param  array   $fields    Salesforce object fields.
+     * @param  string  $name      Name of the select element.
+     * @param  string  $selected  Name of the selected option.
+     * @return string             Representing HTML element.
      */
-    private function generate_sf_select_element( $fields, $name, $selected ) {
-			return $this->generate_select_element( $fields, $name, $selected, true );
+    private function generate_sf_select_element( array $fields, string $name, string $selected ) {
+      return $this->generate_select_element( $fields, $name, $selected, true );
     }
 
     /**
-     * Return select HTML element with given options from the SF field picklist
-     * @param array   $fields - Salesforce picklist fields
-     * @param string  $name - name of the select element
-     * @param string  $selected - value of the selected option/field
-     * @param boolean $required - is select element required, default = false
-     * @return string - representing HTML select element
+     * Return select HTML element with given options from the SF field picklist.
+     *
+     * @param  array   $fields   Salesforce picklist fields.
+     * @param  string  $name     Name of the select element.
+     * @param  string  $selected Value of the selected option/field.
+     * @param  boolean $required Is select element required, defaults to false.
+     * @return string            Representing HTML select element.
      */
-    private function generate_sf_picklist_select_element( $fields, $name, $selected, $required = false ) {
+    private function generate_sf_picklist_select_element( array $fields, string $name, string $selected, bool $required = false ) {
       return $this->generate_select_element( $fields, $name, $selected, false, $required );
     }
 
     /**
-     * Return select HTML element with given name and options from WooCommerce
-     * @param array    $field_names - WooCommerce object field names
-     * @param string   $name - name of the select element
-     * @param string   $selected - name of the selected option
-     * @param boolean  $required - is select element required, default = false
-     * @param string   $type - type of corresponding SF field, default = ""
-     * @return string - representing HTML element
+     * Return select HTML element with given name and options from WooCommerce.
+     *
+     * @param  array    $field_names WooCommerce object field names.
+     * @param  string   $name        Name of the select element.
+     * @param  string   $selected    Name of the selected option.
+     * @param  boolean  $required    Is select element required, defaults to false.
+     * @param  string   $type        Type of corresponding SF field, defaults to "".
+     * @return string                Representing HTML element.
      */
-    private function generate_wc_select_element( $field_names, $name, $selected, $required = false, $type = "" ) {
-			$fields = array();
-			foreach( $field_names as $field_name ) {
-				array_push(
-					$fields,
-					array(
-						"name" => $field_name,
-						"label" => ucwords( str_replace( "_", " ", $field_name ) )
-					)
-				);
-			}
+    private function generate_wc_select_element( array $field_names, string $name, string $selected, bool $required = false, string $type = "" ) {
+      $fields = array();
+      foreach( $field_names as $field_name ) {
+        array_push( $fields, array(
+          "name"  => $field_name,
+          "label" => ucwords( str_replace( "_", " ", $field_name ) )
+        ) );
+      }
       return $this->generate_select_element( $fields, $name, $selected, false, $required, $type );
     }
 
     /**
      * Return an option HTML element as a string.
      *
-     * @param string  $name
-     * @param string  $value
-     * @param boolean $is_selected
+     * @param  string  $name
+     * @param  string  $value
+     * @param  boolean $is_selected
      * @return string
      */
-    private function generate_option_element( $name, $value, $is_selected = false ) {
+    private function generate_option_element( string $name, string $value, bool $is_selected = false ) {
       $option_element = "<option value='" . $value . "'";
       if ( $is_selected ) {
         $option_element .= " selected ";
@@ -380,15 +411,15 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
 
     /**
      * Return select HTML element
-     * @param array    $fields - array of objects with option names and values
-     * @param string   $name - name of the select element
-     * @param string   $selected - name of the selected option(default = "")
-     * @param boolean  $ignore_refrences - true to ignore references fields (default = false)
-     * @param boolean  $required - is select element required (default = false)
-     * @param string   $type - type of corresponding SF field, default = ""
-     * @return string - representing HTML element
+     * @param  array    $fields            Array of objects with option names and values.
+     * @param  string   $name              Name of the select element.
+     * @param  string   $selected          Name of the selected option, defaults to "".
+     * @param  boolean  $ignore_refrences  True to ignore references fields, defaults to false.
+     * @param  boolean  $required          Is select element required, defaults to false.
+     * @param  string   $type              Type of corresponding SF field, defaults to "".
+     * @return string                     Representing HTML element.
      */
-    private function generate_select_element( $fields, $name, $selected = "", $ignore_refrences = false, $required = false, $type = "" ) {
+    private function generate_select_element( array $fields, string $name, string $selected = "", bool $ignore_refrences = false, bool $required = false, string $type = "" ) {
 
       $select_element = "<select";
       if ( $required ) {
@@ -436,25 +467,24 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
     }
 
     /**
-     * Return WooCommerce object descriptions (attribute names)
-     * @param string $type - name of WooCommerce object
+     * Return NWSI model property keys (attribute names).
+     *
+     * @param  string $type Name of the model.
      * @return array
      */
-    private function get_wc_object_description( $type ) {
-      if( !empty( $type ) ) {
-        switch( strtolower( $type ) ) {
-          case "order product":
-            $model = new NWSI_Order_Product_Model();
-            break;
-          case "order":
-            $model = new NWSI_Order_Model();
-            break;
-          default:
-            return null;
-        }
-        return $model->get_property_keys();
+    private function get_wc_object_description( string $type ) {
+      switch( strtolower( $type ) ) {
+        case "product":
+          $model = new NWSI_Product_Model();
+          break;
+        case "order":
+          $model = new NWSI_Order_Model();
+          break;
+        default:
+          return null;
       }
-      return null;
+      return $model->get_property_keys();
     }
+
   }
 }
