@@ -26,7 +26,7 @@ if ( !class_exists( "NWSI_Salesforce_Token_Manager" ) ) {
 
       $this->login_uri = get_option("woocommerce_nwsi_login_url");
 
-      require_once ( plugin_dir_path( __FILE__ ) .  "../utilites/class-nwsi-cryptor.php" );
+      require_once ( NWSI_DIR_PATH . "includes/controllers/utilites/class-nwsi-cryptor.php" );
       $this->cryptor = new NWSI_Cryptor();
 
       $this->redirect_uri   = admin_url(esc_attr__("admin.php?page=wc-settings&tab=integration&section=nwsi"), "https");
@@ -127,7 +127,7 @@ if ( !class_exists( "NWSI_Salesforce_Token_Manager" ) ) {
 
     /**
      * Set login URI used for token management
-     * @param string $login_uri 
+     * @param string $login_uri
      */
     public function set_login_uri( $login_uri ) {
       if ( !empty( $login_uri ) && is_string( $login_uri ) ) {

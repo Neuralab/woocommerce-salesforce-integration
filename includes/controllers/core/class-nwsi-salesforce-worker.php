@@ -4,7 +4,7 @@ if ( !defined( "ABSPATH" ) ) {
 }
 
 if ( !class_exists( "WP_Async_Request" ) ) {
-  require_once( plugin_dir_path( __FILE__ ) . "../../libs/wp-background-processing/wp-async-request.php" );
+  require_once( NWSI_DIR_PATH . "includes/libs/wp-background-processing/wp-async-request.php" );
 }
 
 if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
@@ -22,9 +22,9 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
     public function __construct() {
       parent::__construct();
 
-      require_once( plugin_dir_path( __FILE__ ) .  "../../models/class-nwsi-order-model.php" );
-      require_once( plugin_dir_path( __FILE__ ) .  "../../models/class-nwsi-order-product-model.php" );
-      require_once( plugin_dir_path( __FILE__ ) .  "../../controllers/core/class-nwsi-db.php" );
+      require_once( NWSI_DIR_PATH . "includes/models/class-nwsi-order-model.php" );
+      require_once( NWSI_DIR_PATH . "includes/models/class-nwsi-product-model.php" );
+      require_once( NWSI_DIR_PATH . "includes/controllers/core/class-nwsi-db.php" );
 
       $this->db = new NWSI_DB();
       $this->sf = new NWSI_Salesforce_Object_Manager();
@@ -53,28 +53,25 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
     }
 
     /**
-     * Process order and send data to Salesforce
+     * Process order and send data to Salesforce.
+     *
      * @param int $order_id
      */
-    public function handle_order( $order_id ) {
-      // order meta data
-      $sync_order_success = true;
-      $sync_order_error_message = array();
-
+    public function handle_order( int $order_id ) {
+      $is_success = true;
+      $error_message = array();
       $relationships = $this->db->get_active_relationships();
 
       if ( empty( $relationships ) ) {
         update_post_meta( $order_id, "_sf_sync_status", "failed" );
-        array_push( $sync_order_error_message, "NWSI: No defined relationships." );
-        update_post_meta( $order_id, "_sf_sync_error_message", json_encode( $sync_order_error_message ) );
+        array_push( $error_message, "NWSI: No defined relationships." );
+        update_post_meta( $order_id, "_sf_sync_error_message", json_encode( $error_message ) );
         return;
       }
 
       $relationships = $this->prioritize_relationships( $relationships );
 
       // contains ids of created objects
-      // standard price book id needed for orders and order products
-      // $response_ids = array( "Pricebook2" => $this->sf->get_standard_price_book_id() );
       $response_ids = array();
 
       $order    = new NWSI_Order_Model( $order_id );
@@ -84,25 +81,29 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
         // get relationship connections
         $connections = json_decode( $relationship->relationships );
 
-        if ( $relationship->from_object == "Order" ) {
+        if ( $relationship->from_object === "Order" ) {
           // process order
           $values = $this->get_values( $connections, $order );
-
-          $this->set_dependencies( $relationship->to_object, $values,
-          json_decode( $relationship->required_sf_objects ), $response_ids, $relationship->from_object );
+          $this->set_dependencies(
+            $relationship->to_object, $values,
+            json_decode( $relationship->required_sf_objects ),
+            $response_ids, $relationship->from_object
+          );
 
           if ( !empty( $values ) ) {
-            $response = $this->send_to_salesforce( $relationship->to_object, $values,
-            json_decode( $relationship->unique_sf_fields ), $response_ids );
+            $response = $this->send_to_salesforce(
+              $relationship->to_object, $values,
+              json_decode( $relationship->unique_sf_fields ), $response_ids
+            );
 
             if ( !$response["success"] ) {
-              $sync_order_success = false;
-              array_push( $sync_order_error_message, $response["error_message"] );
+              $is_success = false;
+              array_push( $error_message, $response["error_message"] );
               break; // no need to continue
             }
           }
 
-        } else if ( $relationship->from_object == "Order Product" ) {
+        } else if ( $relationship->from_object === "Order Product" ) {
           $i = 0;
           foreach( $products as $product ) {
             $values = $this->get_values( $connections, $product );
@@ -114,8 +115,8 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
               json_decode( $relationship->unique_sf_fields ), $response_ids, $i );
 
               if ( !$response["success"] ) {
-                $sync_order_success = false;
-                array_push( $sync_order_error_message, $response["error_message"] );
+                $is_success = false;
+                array_push( $error_message, $response["error_message"] );
                 break; // no need to continue
               }
             }
@@ -123,15 +124,15 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
           }
         }
       } // for each relationship
-      
+
       // handle order sync response
-      $this->handle_order_sync_response( $order_id, $sync_order_success, $sync_order_error_message );
+      $this->handle_order_sync_response( $order_id, $is_success, $error_message );
     }
 
     /**
      * Extract and return order items from order object
      * @param NWSI_Order_Model  $order
-     * @return array - array of NWSI_Order_Product_Model
+     * @return array - array of NWSI_Product_Model
      */
     private function get_products_from_order( $order ) {
       $product_items = $order->get_items();
@@ -140,7 +141,7 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
       $products = array();
       foreach( $product_items as $product_item ) {
         // process order product
-        $product = new NWSI_Order_Product_Model( $product_item["product_id"] );
+        $product = new NWSI_Product_Model( $product_item["product_id"] );
         $product->set_order_product_meta_data( $product_item["item_meta"] );
 
         array_push( $products, $product );

@@ -8,16 +8,28 @@ if ( !class_exists( "NWSI_DB" ) ) {
   class NWSI_DB {
 
     /**
+     * Name of the relationship table.
+     * @var string
+     */
+    private $rel_table_name = "";
+
+    /**
+     * Class constructor.
+     */
+    public function __construct() {
+      global $wpdb;
+
+      $this->rel_table_name = $wpdb->prefix . "nwsi_relationships";
+    }
+
+    /**
     * Create relationship table
     */
     public function create_relationship_table() {
-
       global $wpdb;
 
       $charset_collate = $wpdb->get_charset_collate();
-      $table_name = $wpdb->prefix . "nwsi_relationships";
-
-      $query = "CREATE TABLE $table_name (
+      $query = "CREATE TABLE $this->rel_table_name (
         id MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
         hash_key VARCHAR(128) NOT NULL,
         relationships TEXT NOT NULL,
@@ -39,49 +51,45 @@ if ( !class_exists( "NWSI_DB" ) ) {
     }
 
     /**
-     * Delete relationship table
+     * Delete relationship table.
      */
     public function delete_relationship_table() {
-
       global $wpdb;
 
-      $table_name = $wpdb->prefix . "nwsi_relationships";
-
-      $wpdb->query( "DROP TABLE IF EXISTS " . $table_name );
+      $wpdb->query( "DROP TABLE IF EXISTS " . $this->rel_table_name );
     }
 
     /**
-    * Check if relationship table is empty
+    * Check if the relationship table is empty.
+    *
+    * @return boolean
     */
     public function is_relationship_table_empty() {
-
       global $wpdb;
 
-      $table_name = $wpdb->prefix . "nwsi_relationships";
-
-      $query = "SELECT * FROM $table_name LIMIT 1";
+      $query = "SELECT * FROM $this->rel_table_name LIMIT 1";
 
       $results = $wpdb->get_results( $query );
       if ( empty( $results ) ) {
         return true;
       }
-
       return false;
     }
 
     /**
-    * Save new relationship to database
-    * @param string $from - name of WooCommerce object
-    * @param string $from_label - label of WooCommerce object
-    * @param string $to - name of Salesforce object
-    * @param string $to - label of Salesforce object
-    * @param mixed  $data - relationships ($_POST) array or relationships JSON string
-    * @param string $required_sf_objects - default = ""
-    * @param string $unique_sf_fields - default = ""
-    * @return boolean - false if something went wrong
+    * Save new relationship to the database and return true if successful or
+    * false otherwise.
+    *
+    * @param string $from                 Name of WooCommerce object.
+    * @param string $from_label           Label of WooCommerce object.
+    * @param string $to                   Name of Salesforce object.
+    * @param string $to_label             Label of Salesforce object.
+    * @param mixed  $data                 Relationships array or relationships JSON string.
+    * @param string $required_sf_objects  Defaults to empty string.
+    * @param string $unique_sf_fields     Defaults to empty string.
+    * @return boolean
     */
     public function save_new_relationship( $from, $from_label, $to, $to_label, $data, $required_sf_objects = "", $unique_sf_fields = "" ) {
-
       if ( empty( $from ) || empty( $to ) || empty( $data ) ) {
         return false;
       }
@@ -103,8 +111,7 @@ if ( !class_exists( "NWSI_DB" ) ) {
       $key = md5( date('Y-m-d H:i:s') . $from . $to );
 
       global $wpdb;
-
-      $wpdb->insert( $wpdb->prefix . "nwsi_relationships", array(
+      $wpdb->insert( $this->rel_table_name, array(
         "from_object"         => $from,
         "from_object_label"   => $from_label,
         "to_object"           => $to,
@@ -115,16 +122,16 @@ if ( !class_exists( "NWSI_DB" ) ) {
         "unique_sf_fields"    => $unique_sf_fields,
         "date_created"        => date('Y-m-d H:i:s'),
         "date_updated"        => date('Y-m-d H:i:s')
-        ) );
-
+      ) );
       return true;
     }
 
     /**
-    * Update relationship
+    * Update relationship and return true if successful or false otherwise.
+    *
     * @param string  $key
     * @param array   $data
-    * @return boolean - false if something went wrong
+    * @return boolean
     */
     public function update_relationship( $key, $data ) {
       $relationships = $this->relationship_data_to_json( $data );
@@ -147,18 +154,21 @@ if ( !class_exists( "NWSI_DB" ) ) {
       }
 
       global $wpdb;
-
-      $wpdb->update( $wpdb->prefix . "nwsi_relationships",
-      $update_data,
-      array( "hash_key" => $key ) );
+      $wpdb->update(
+        $this->rel_table_name,
+        $update_data,
+        array( "hash_key" => $key )
+      );
       return true;
     }
 
     /**
-    * Extract unique sf fields from provided array ($_POST)
+    * Extract unique salesforce fields from the provided array and return them
+    * as array or string if $to_json is set to true.
+    *
     * @param array   $data
-    * @param string  $to_json - default = true
-    * @return mixed - array or string if $to_json=true
+    * @param string  $to_json Defaults to true.
+    * @return array|string
     */
     private function get_unique_sf_fields( $data, $to_json = true ) {
 
@@ -178,10 +188,12 @@ if ( !class_exists( "NWSI_DB" ) ) {
     }
 
     /**
-    * Extract required sf objects from provided array ($_POST)
+    * Extract required salesforce objects from provided array and return them in
+    * form of array or string if $to_json is set to true.
+    *
     * @param array   $data
-    * @param string  $to_json - default = true
-    * @return mixed - array or string if $to_json=true
+    * @param string  $to_json Defaults to true.
+    * @return array|string
     */
     private function get_required_sf_objects( $data, $to_json = true ) {
 
@@ -191,7 +203,7 @@ if ( !class_exists( "NWSI_DB" ) ) {
       while( array_key_exists( "requiredSfObject-" . $i, $data ) ) {
         if ( array_key_exists( "requiredSfObjectIsActive-" . $i, $data ) ) {
           $parts = explode( "|", $data["requiredSfObject-" . $i] );
-          if ( sizeof( $parts ) < 3 ) {
+          if ( count( $parts ) < 3 ) {
             continue;
           }
           $required_object = array(
@@ -210,9 +222,11 @@ if ( !class_exists( "NWSI_DB" ) ) {
     }
 
     /**
-    * Transform relationship array to json
+    * Transform relationship array to json string. Returns empty string if no
+    * relationships provided.
+    *
     * @param array $data
-    * @return string - empty if no relationships
+    * @return string
     */
     private function relationship_data_to_json( $data ) {
 
@@ -263,8 +277,8 @@ if ( !class_exists( "NWSI_DB" ) ) {
       global $wpdb;
 
       $query = "SELECT relationships, from_object, from_object_label, to_object, to_object_label, "
-      . "required_sf_objects, unique_sf_fields FROM " . $wpdb->prefix
-      . "nwsi_relationships WHERE hash_key=%s";
+        . "required_sf_objects, unique_sf_fields FROM $this->rel_table_name WHERE hash_key=%s";
+
       $response = $wpdb->get_results( $wpdb->prepare( $query, $key ) );
 
       if ( empty( $response ) ) {
@@ -275,45 +289,45 @@ if ( !class_exists( "NWSI_DB" ) ) {
     }
 
     /**
-    * Return all active relationships
+    * Return all active relationships.
+    *
     * @return array
     */
     public function get_active_relationships() {
-
       global $wpdb;
 
-      $query = "SELECT from_object, to_object, relationships, active, required_sf_objects, unique_sf_fields ";
-      $query .= "FROM " . $wpdb->prefix . "nwsi_relationships WHERE active=1";
+      $query  = "SELECT from_object, to_object, relationships, active, required_sf_objects, unique_sf_fields ";
+      $query .= "FROM $this->rel_table_name WHERE active=1";
 
       return $wpdb->get_results( $query );
     }
 
     /**
-    * Return all relationships
+    * Return all relationships.
+    *
     * @return array
     */
     public function get_relationships() {
-
       global $wpdb;
 
-      $query = "SELECT id, date_created, date_updated, from_object, ";
+      $query  = "SELECT id, date_created, date_updated, from_object, ";
       $query .= "from_object_label, to_object, to_object_label, hash_key, active ";
-      $query .= "FROM " . $wpdb->prefix . "nwsi_relationships";
+      $query .= "FROM $this->rel_table_name";
 
       return $wpdb->get_results( $query );
     }
 
     /**
-    * Delete relationships
-    * @param $ids - array of relationships ids
+    * Delete relationships and return true if successful or false otherwise.
+    *
+    * @param array $ids
     * @return boolean
     */
     public function delete_relationships_by_id( $ids ) {
-
       global $wpdb;
 
       $sql_ids = $this->sanitize_ids( $ids );
-      $query = "DELETE FROM " . $wpdb->prefix . "nwsi_relationships WHERE id IN (" . implode( ",", $sql_ids ) . ")";
+      $query = "DELETE FROM $this->rel_table_name WHERE id IN (" . implode( ",", $sql_ids ) . ")";
 
       return $wpdb->query( $query );
     }
@@ -337,7 +351,8 @@ if ( !class_exists( "NWSI_DB" ) ) {
     }
 
     /**
-    * Set active attribute to given value
+    * Set active attribute to given value.
+    *
     * @param int   $value
     * @param array $ids
     * @return boolean
@@ -346,19 +361,20 @@ if ( !class_exists( "NWSI_DB" ) ) {
       global $wpdb;
 
       $sql_ids = $this->sanitize_ids( $ids );
-      $query = "UPDATE " . $wpdb->prefix . "nwsi_relationships SET active=" . $value . " WHERE id IN (" . implode( ",", $sql_ids ) . ")";
+      $query = "UPDATE $this->rel_table_name SET active=" . $value . " WHERE id IN (" . implode( ",", $sql_ids ) . ")";
 
       return $wpdb->query( $query );
     }
 
     /**
-    * Return array of sanitized ids
+    * Return array of sanitized ids.
+    *
     * @param array $ids
     * @return array
     */
     private function sanitize_ids( $ids ) {
       $sql_ids = array();
-      for ( $i = 0; $i < sizeof( $ids ); $i++ ) {
+      for ( $i = 0; $i < count( $ids ); $i++ ) {
         array_push( $sql_ids, intval( $ids[$i] ) );
       }
 
@@ -366,40 +382,60 @@ if ( !class_exists( "NWSI_DB" ) ) {
     }
 
     /**
-    * Return WC_Order magic properties from orders in DB
+     * Filter raw keys extracted from the database for order, product, etc.
+     * @param  array $keys_raw
+     * @return array
+     */
+    private function filter_meta_keys( $keys_raw ) {
+      $keys = array();
+      foreach ($keys_raw as $key_container) {
+        $pos = strpos( $key_container[0], "_" );
+        if ( $pos !== false ) {
+          array_push( $keys, substr_replace( $key_container[0], "", $pos, strlen( "_" ) ) );
+        } else {
+          array_push( $keys, $key_container[0] );
+        }
+      }
+      return $keys;
+    }
+
+    /**
+    * Return WC_Order magic properties from orders in DB.
+    *
     * @return array
     */
     public function get_order_meta_keys() {
-
       global $wpdb;
 
-      $query = "SELECT DISTINCT( meta_key ) FROM " . $wpdb->prefix . "postmeta WHERE post_id=(";
+      $query  = "SELECT DISTINCT( meta_key ) FROM " . $wpdb->prefix . "postmeta WHERE post_id=(";
       $query .= "SELECT ID FROM " . $wpdb->prefix . "posts WHERE post_type='shop_order' ";
       $query .= "ORDER BY ID DESC )";
 
-      return $wpdb->get_results( $query );
+      $keys_raw = $wpdb->get_results( $query, ARRAY_N );
+      return $this->filter_meta_keys( $keys_raw );
     }
 
     /**
-    * Return WC_Product magic properties from products in DB
+    * Return WC_Product magic properties from products in DB.
+    *
     * @return array
     */
     public function get_product_meta_keys() {
-
       global $wpdb;
 
-      $query = "SELECT DISTINCT( meta_key ) FROM " . $wpdb->prefix . "postmeta WHERE post_id IN (";
+      $query  = "SELECT DISTINCT( meta_key ) FROM " . $wpdb->prefix . "postmeta WHERE post_id IN (";
       $query .= "SELECT ID FROM " . $wpdb->prefix . "posts WHERE post_type='product' OR post_type='product_variation')";
 
-      return $wpdb->get_results( $query );
+      $keys_raw = $wpdb->get_results( $query, ARRAY_N );
+      return $this->filter_meta_keys( $keys_raw );
     }
 
     /**
-    * Return properties from order products in DB
+    * Return WC_Order_Item properties from order item entry in DB.
+    *
     * @return array
     */
-    public function get_order_product_meta_keys() {
-
+    public function get_order_item_meta_keys() {
       global $wpdb;
 
       $query = "SELECT DISTINCT ( meta_key ) FROM " . $wpdb->prefix . "woocommerce_order_itemmeta";

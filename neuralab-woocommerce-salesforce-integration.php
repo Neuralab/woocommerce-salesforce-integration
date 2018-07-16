@@ -2,8 +2,8 @@
 /**
 * Plugin Name: Neuralab WooCommerce SalesForce Integration
 * Plugin URI: https://github.com/Neuralab/WooCommerce-Salesforce-integration
-* Description: WooCommerce SalesForce Integration
-* Version: 0.9.1
+* Description: Syncing engine for all sort of datasets and configurations.
+* Version: 0.9.2
 * Author: Neuralab
 * Author URI: https://neuralab.net
 * Developer: matej@neuralab
@@ -62,7 +62,7 @@ if ( nwsi_is_woocommerce_active() ) {
        *
        * @var string
        */
-      const VERSION = "0.9.1";
+      const VERSION = "0.9.2";
 
       /**
        * Singleton instance.
@@ -91,7 +91,9 @@ if ( nwsi_is_woocommerce_active() ) {
 
         if ( is_admin() ) {
           require_once( "includes/views/class-nwsi-orders-view.php" );
-          new NWSI_Orders_View();
+          $orders_view = new NWSI_Orders_View();
+          $orders_view->register_hooks();
+
           //TODO: Find a better way of doing this
           add_action('admin_enqueue_scripts', function() {
             wp_enqueue_style( "nwsi-settings-style", plugins_url( "/includes/style/nwsi-settings.css", __FILE__ ) );

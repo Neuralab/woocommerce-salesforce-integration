@@ -20,6 +20,7 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
      */
     public function __construct( NWSI_Salesforce_Object_Manager $sf ) {
       require_once ( NWSI_DIR_PATH . "includes/models/class-nwsi-order-model.php" );
+      require_once ( NWSI_DIR_PATH . "includes/models/class-nwsi-order-item-model.php" );
       require_once ( NWSI_DIR_PATH . "includes/models/class-nwsi-product-model.php" );
 
       $this->sf = $sf;
@@ -475,10 +476,15 @@ if ( !class_exists( "NWSI_Relationships_Form" ) ) {
     private function get_wc_object_description( string $type ) {
       switch( strtolower( $type ) ) {
         case "product":
+        case "order product":
           $model = new NWSI_Product_Model();
           break;
         case "order":
           $model = new NWSI_Order_Model();
+          break;
+        case "order_item":
+        case "order item":
+          $model = new NWSI_Order_Item_Model();
           break;
         default:
           return null;

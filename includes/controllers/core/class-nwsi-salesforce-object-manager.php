@@ -2,31 +2,34 @@
 if ( !defined( "ABSPATH" ) ) {
   exit;
 }
+
 if ( !class_exists( "NWSI_Salesforce_Token_Manager" ) ) {
   require_once( "class-nwsi-salesforce-token-manager.php" );
 }
 
 if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
+  /**
+   * Core class responsible for managing SalesForce objects.
+   */
   class NWSI_Salesforce_Object_Manager extends NWSI_Salesforce_Token_Manager {
 
+    /**
+     * Salesforce API version used in the plugin.
+     *
+     * @var string
+     */
     private $api_version = "v37.0";
 
     /**
-     * Class constructor
-     */
-    function __construct() {
-      parent::__construct();
-    }
-
-    /**
      * Creates object if it doesn't already exists
-     * @param string 	  $name - name of the SF object
-     * @param array		  $values
-     * @param array     $unique_sf_fields
-     * @param boolean   $no_error_handling - default = false
+     *
+     * @param  string  $name                Name of the SF object.
+     * @param  array   $values
+     * @param  array   $unique_sf_fields    Defaults to empty array.
+     * @param  boolean $no_error_handling   Defaults to false.
      * @return array
      */
-    public function create_object( $name, $values, $unique_sf_fields = array(), $no_error_handling = false ) {
+    public function create_object( string $name, array $values, array $unique_sf_fields = array(), bool $no_error_handling = false ) {
       // check if object with given unique_sf_field values exists
       if ( !empty( $unique_sf_fields ) ) {
         $get_values = array();
@@ -71,10 +74,10 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
         }
       }
 
-      if ( $sf_response["success"] ) {
+      if ( isset( $sf_response["success"] ) && $sf_response["success"] ) {
         $response["success"] = true;
         $response["id"]      = $sf_response["id"];
-      } else if ( $sf_response["done"] && sizeof( $sf_response["records"] ) > 0 ) {
+      } else if ( isset( $sf_response["done"] ) && $sf_response["done"] && count( $sf_response["records"] ) > 0 ) {
         $response["success"] = true;
         $response["id"]      = $sf_response["records"][0]["Id"];
       } else {
@@ -85,16 +88,17 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
     }
 
     /**
-     * Return object's ID that has provided values
-     * @param string  $name
-     * @param array   $values
+     * Return object's ID that has provided values.
+     *
+     * @param  string  $name
+     * @param  array   $values
      * @return array
      */
-    private function get_object( $name, $values ) {
+    private function get_object( string $name, array $values ) {
       $query = "SELECT Id FROM " . $name . " WHERE ";
 
       $where_query_part = "";
-      foreach( $values as $key => $val ) {
+      foreach ( $values as $key => $val ) {
         // checking for boolean attributes is not needed!
         if ( is_bool( $val ) || $val == "true" || $val == "false" ) {
           continue;
@@ -116,7 +120,7 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
       $sf_response = $this->get_response( $url );
       $response = array();
 
-      if ( $sf_response["done"] && sizeof( $sf_response["records"] ) > 0 ) {
+      if ( isset( $sf_response["done"] ) && $sf_response["done"] && count( $sf_response["records"] ) > 0 ) {
         $response["success"] = true;
         $response["id"]      = $sf_response["records"][0]["Id"];
       } else {
@@ -130,7 +134,7 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
      * @param array $sf_response
      * @return array
      */
-    private function set_response_error_message( $sf_response ) {
+    private function set_response_error_message( array $sf_response ) {
       $response["success"] = false;
       if ( !empty( $sf_response[0]["errorCode"] ) && !empty( $sf_response[0]["message"]) ) {
         $response["error_code"]    = $sf_response[0]["errorCode"];

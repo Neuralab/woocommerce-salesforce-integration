@@ -49,7 +49,7 @@
 
     window.location.replace( window.location.href + "&rel=new" +
       "&from=" + encodeURIComponent( $( "#nwsi-rel-from-wc" ).val() ) +
-      "&from_label=" + encodeURIComponent( $("#nwsi-rel-from-wc option:selected").text() ) +
+      "&from_label=" + encodeURIComponent( $("#nwsi-rel-from-wc option:selected").text().trim() ) +
       "&to=" + encodeURIComponent( $( "#nwsi-rel-to-sf" ).val() ) +
       "&to_label=" + encodeURIComponent( $( "#nwsi-rel-to-sf option:selected" ).text() )
     );
