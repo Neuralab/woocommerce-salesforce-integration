@@ -3,100 +3,96 @@ if ( !defined( "ABSPATH" ) ) {
   exit;
 }
 
-if ( !class_exists( "NWSI_Model" ) ) {
-  require_once( "interface-nwsi-model.php" );
+if ( !class_exists( "WC_Order" ) ) {
+  error_log( "WC_Order class missing! Check if WooCommerce plugin is installed properly." );
+  return;
 }
 
-if ( !class_exists( "NWSI_Order_Model" ) ) {
-  class NWSI_Order_Model extends WC_Order implements NWSI_Model {
+require_once( "interface-nwsi-model.php" );
 
-    private $order_properties;
-    private $post_properties;
+if ( !class_exists( "NWSI_Order_Model" ) ) {
+  /**
+   * Class which extends WC_Order and provides methods for easier data access.
+   *
+   * @version 0.9.2
+   */
+  class NWSI_Order_Model extends WC_Order implements NWSI_Model {
 
     /**
     * Class constructor
     * @override
+    * @param int|WC_Order $order  Defaults to empty string.
     */
     public function __construct( $order = "" ) {
-
-      if ( !empty( $order ) ) {
-        parent::init( $order );
-      }
-
-      $this->order_properties = $this->get_order_meta_keys();
-      // needed data from WP_Post (WC_Order containts post)
-      $this->post_properties = ["customer_message", "order_date", "modified_date", "order_type"];
+      parent::__construct( $order );
     }
 
     /**
-    * Return order meta keys from latest order
-    * @return array
-    */
-    public function get_order_meta_keys() {
-
-      require_once( plugin_dir_path( __FILE__ )  . "../controllers/core/class-nwsi-db.php" );
-
-      $db = new NWSI_DB();
-      $items = $db->get_order_meta_keys();
-
-      if ( empty( $items ) ) {
-        // fallback if there's no orders in DB
-        $items = $this->get_default_meta_keys();
-      }
-
-      $items = $this->get_default_meta_keys();
-
-      $meta_keys = array();
-      foreach( $items as $item ) {
-        $pos = strpos( $item->meta_key, "_" );
-        if ( $pos !== false ) {
-          array_push( $meta_keys, substr_replace( $item->meta_key, "", $pos, strlen( "_" ) ) );
-        }
-      }
-
-      return $meta_keys;
-    }
-
-    /**
-    * Return WC_Order properties
+    * Return order meta keys which are collected from the WC_Order class
+    *
+    * @since 0.1
     * @return array
     */
     public function get_property_keys() {
-      return array_merge( $this->order_properties, $this->post_properties );
+      $data      = $this->get_data();
+      $data_keys = $this->get_data_keys();
+
+      // keys which hold subarrays in $data
+      $parent_keys = array( "shipping", "billing" );
+      for ( $i = 0; $i < count( $data_keys ) ; $i++ ) {
+        foreach ( $parent_keys as $parent_key ) {
+          if ( isset( $data_keys[$i] ) && $parent_key === $data_keys[$i] ) {
+            unset( $data_keys[$i] );
+            foreach ( $data[$parent_key] as $child_key => $child_value ) {
+              array_push( $data_keys, $parent_key . "_" . $child_key );
+            }
+          }
+        }
+      }
+
+      $include_db_keys = false;
+      if ( has_filter( "nwsi_include_order_keys_from_database" ) ) {
+        $include_db_keys = (bool) apply_filters( "nwsi_include_order_keys_from_database" );
+      }
+
+      if ( $include_db_keys ) {
+        // combine with order meta keys from the database
+        require_once( NWSI_DIR_PATH . "includes/controllers/core/class-nwsi-db.php" );
+        $db   = new NWSI_DB();
+        $keys = array_merge( $data_keys, $db->get_order_meta_keys() );
+      } else {
+        $keys = $data_keys;
+      }
+
+      $unique_keys = array_unique( $keys );
+      sort( $unique_keys, SORT_STRING );
+
+      if ( has_filter( "nwsi_order_property_keys" ) ) {
+        $unique_keys = (array) apply_filters( "nwsi_order_property_keys", $unique_keys );
+      }
+
+      return $unique_keys;
     }
 
     /**
-    * Return property value
+    * Return property value.
+    *
+    * @since 0.1
     * @param string $property_name
     * @return string
     */
     public function get( $property_name ) {
-      switch( $property_name ) {
-        case "customer_message":
-          return $this->customer_message;
-        case "order_date":
-          return $this->order_date;
-        case "modified_date":
-          return $this->modified_date;
-        case "order_type":
-          return $this->order_type;
-        default:
-          return parent::__get( $property_name );
+      $value = null;
+      if ( method_exists( $this, "get_" . $property_name ) ) {
+        $value = $this->{"get_" . $property_name}();
+      }
+
+      if ( has_filter( "nwsi_get_order_property_key_" . $property_name ) ) {
+        return apply_filters( "nwsi_get_order_property_key_" . $property_name, $value, $this );
+      } else {
+        return $value;
       }
     }
 
-      /**
-      * Return default meta_keys (use as fallback, dirty!)
-      * @return array
-      */
-      private function get_default_meta_keys() {
-        $utility = new NWSI_Utility();
-        $response = $utility->load_from_file( "default_order_meta_keys.json", "data" );
-        if ( empty( $response ) ) {
-          return array();
-        }
-        return $response;
-      }
-
-    }
+  }
 }
