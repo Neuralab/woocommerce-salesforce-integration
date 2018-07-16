@@ -4,26 +4,29 @@ if ( !defined( "ABSPATH" ) ) {
 }
 
 if ( !class_exists( "NWSI_Orders_View" ) ) {
+  /**
+   * View class responsible for managing metabox on single order view.
+   */
   class NWSI_Orders_View {
 
     /**
-     * Class constructor
+     * Register hook methods.
      */
-    public function __construct() {
+    public function register_hooks() {
       add_action( "add_meta_boxes", array( $this, "add_sf_order_meta_box" ) );
 
       add_filter( "manage_edit-shop_order_columns", array( $this, "manage_orders_columns" ), 10, 1 );
       add_action( "manage_shop_order_posts_custom_column", array( $this, "order_column_salesforce_sync" ), 10, 2 );
 
       add_action( "save_post", array( $this, "process_order_sync_request" ), 10, 1 );
-
     }
 
     /**
-     * Check if user can sync order and send the request to Salesforce API
+     * Check if the user can sync order and send the request to Salesforce API.
+     *
      * @param int $order_id
      */
-    public function process_order_sync_request( $order_id ) {
+    public function process_order_sync_request( int $order_id ) {
       $nonce_name   = isset( $_POST["nwsi_sync_product_nonce"] ) ? $_POST["nwsi_sync_product_nonce"] : "";
       $nonce_action = "nwsi_sync_product";
 
@@ -31,27 +34,27 @@ if ( !class_exists( "NWSI_Orders_View" ) ) {
         return;
       }
       if ( !isset( $nonce_name ) || !wp_verify_nonce( $nonce_name, $nonce_action ) ) {
-          return;
+        return;
       }
       if ( !current_user_can( "edit_post", $order_id ) ) {
-          return;
+        return;
       }
       if ( wp_is_post_autosave( $order_id ) || wp_is_post_revision( $order_id ) ) {
-          return;
+        return;
       }
 
-      require_once ( plugin_dir_path( __FILE__ ) . "../controllers/core/class-nwsi-salesforce-worker.php" );
+      require_once ( NWSI_DIR_PATH . "includes/controllers/core/class-nwsi-salesforce-worker.php" );
       $worker = new NWSI_Salesforce_Worker();
       $worker->handle_order( $order_id );
-
     }
 
     /**
-     * Create new sync column in orders preview
-     * @param array $columns
+     * Create new sync column in orders preview.
+     *
+     * @param  array $columns
      * @return array
      */
-    public function manage_orders_columns( $columns ) {
+    public function manage_orders_columns( array $columns ) {
       $new_columns = array();
       foreach( $columns as $key => $value ) {
         if ( $key == "order_actions" ) {
@@ -64,7 +67,8 @@ if ( !class_exists( "NWSI_Orders_View" ) ) {
     }
 
     /**
-     * Insert value for salesforce sync column in orders preview
+     * Insert value for salesforce sync column in orders preview.
+     *
      * @param string  $column
      * @param int     $post_id
      */
@@ -80,7 +84,7 @@ if ( !class_exists( "NWSI_Orders_View" ) ) {
     }
 
     /**
-     * Create custom meta box in order preview for salesforce sync status
+     * Create custom meta box in order preview for salesforce sync status.
      */
     public function add_sf_order_meta_box() {
       add_meta_box(
@@ -94,7 +98,7 @@ if ( !class_exists( "NWSI_Orders_View" ) ) {
     }
 
     /**
-     * Echo HTML for meta box in order preview for salesforce sync status
+     * Echo HTML for meta box in order preview for salesforce sync status.
      */
     public function display_sf_order_meta_box_fields() {
       global $post;
@@ -106,6 +110,7 @@ if ( !class_exists( "NWSI_Orders_View" ) ) {
       echo "<span class='nwsi-sf-sync-metabox-column-name'>" . __( "Status", "woocommerce-integration-nwsi" ) . ":</span> " . $status . "<br/>";
 
       if ( $status == "failed" ) {
+        $error_messages_txt = "";
         $error_messages = get_post_meta( $post->ID, "_sf_sync_error_message", true );
 
         try {
@@ -125,7 +130,6 @@ if ( !class_exists( "NWSI_Orders_View" ) ) {
       wp_nonce_field( "nwsi_sync_product", "nwsi_sync_product_nonce" );
       echo "<br/>";
       echo "<input type='submit' name='salesforce_sync_request' class='button button-primary' value='" . __( "Save and sync order", "woocommerce-integration-nwsi" ) . "' />";
-
     }
 
   }

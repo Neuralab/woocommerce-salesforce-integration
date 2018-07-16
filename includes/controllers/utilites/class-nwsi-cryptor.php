@@ -12,7 +12,7 @@ if ( !class_exists( "NWSI_Cryptor" ) ) {
     * Class constructor, use NWSI_KEY defined in wp-config.php or hardcoded one
     */
     function __construct() {
-      require_once( plugin_dir_path( __FILE__ ) . "../../libs/crypto/Crypto.php" );
+      require_once( NWSI_DIR_PATH . "includes/libs/crypto/Crypto.php" );
       // changing the key will force user to reauthenticate (rewrite DB entries)
       $plain_key = ( defined( "NWSI_KEY" ) ) ? NWSI_KEY : "_,@Lh|Xe^HT6(Spc[!-__D";
       $this->key = unpack( "H*", mb_strimwidth( $plain_key, 0, 8 ) )[1];

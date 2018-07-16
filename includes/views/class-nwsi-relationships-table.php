@@ -10,10 +10,8 @@ if( !class_exists( "WP_List_Table" ) ) {
 if ( !class_exists( "NWSI_Relationships_Table" ) ) {
   class NWSI_Relationships_Table extends WP_List_Table {
 
-    public $bulk;
-
     /**
-    * Class constructor
+    * Class constructor, initialize class attributes.
     */
     public function __construct() {
       parent::__construct();
@@ -23,15 +21,17 @@ if ( !class_exists( "NWSI_Relationships_Table" ) ) {
     }
 
     /**
-     * Set items array
+     * Set items array.
+     *
      * @param array $items
      */
-    public function set_items( $items ) {
+    public function set_items( array $items ) {
       $this->items = $items;
     }
 
     /**
-     * Prepare items for the table to process
+     * Prepare items for the table to process.
+     *
      * @override
      */
     public function prepare_items() {
@@ -43,29 +43,33 @@ if ( !class_exists( "NWSI_Relationships_Table" ) ) {
     }
 
     /**
-  	 * Generate the table navigation above or below the table
-  	 * @param string $which
-  	 */
-  	protected function display_tablenav( $which ) {
-  		?>
-      	<div class="tablenav <?php echo esc_attr( $which ); ?>">
+     * Generate the table navigation above or below the table.
+     *
+     * @param string $which Is it "top" or "bottom".
+     */
+    protected function display_tablenav( $which ) {
+      ?>
+      <div class="tablenav <?php echo esc_attr( $which ); ?>">
+        <?php if ( $this->has_items() ): ?>
+        <div class="alignleft actions bulkactions">
+          <?php $this->bulk_actions( $which ); ?>
+        </div>
+        <?php endif; ?>
+        <?php $this->extra_tablenav( $which ); ?>
+        <?php $this->pagination( $which ); ?>
 
-      		<?php if ( $this->has_items() ): ?>
-      		<div class="alignleft actions bulkactions">
-      			<?php $this->bulk_actions( $which ); ?>
-      		</div>
-      		<?php endif;
-      		$this->extra_tablenav( $which );
-      		$this->pagination( $which );
-          ?>
-
-      		<br class="clear" />
-      	</div>
+        <br class="clear" />
+      </div>
       <?php
     }
 
     /**
-     * Define bulk actions
+     * Return array of available bulk actions and corresponding labels:
+     * [
+     *  "action_name" => "action_label",
+     *  ...
+     * ]
+     *
      * @override
      * @return array
      */
@@ -78,30 +82,28 @@ if ( !class_exists( "NWSI_Relationships_Table" ) ) {
     }
 
     /**
-     * Process bulk choosen bulk action
+     * Process choosen bulk action.
+     *
      * @override
      */
     public function process_bulk_action() {
-
       if ( !array_key_exists( "bulk", $_POST ) || empty( $_POST["bulk"] ) ) {
         return;
       }
 
       // security check!
-      if( isset( $_POST["_wpnonce"] ) && !empty( $_POST["_wpnonce"] ) ) {
+      if ( isset( $_POST["_wpnonce"] ) && !empty( $_POST["_wpnonce"] ) ) {
         $nonce = filter_input( INPUT_POST, "_wpnonce", FILTER_SANITIZE_STRING );
         if ( !wp_verify_nonce( $nonce, "woocommerce-settings" ) ) {
           return;
         }
       }
 
-      require_once ( plugin_dir_path( __FILE__ ) . "../controllers/core/class-nwsi-db.php" );
+      require_once ( NWSI_DIR_PATH . "includes/controllers/core/class-nwsi-db.php" );
       $db = new NWSI_DB();
 
       $bulk = $_POST["bulk"];
-      $action = $this->current_action();
-
-      switch( $action ) {
+      switch( $this->current_action() ) {
         case "delete":
           $db->delete_relationships_by_id( $bulk );
           break;
@@ -150,8 +152,8 @@ if ( !class_exists( "NWSI_Relationships_Table" ) ) {
     /**
      * Define what data to show on each column of the table
      * @override
-     * @param array   $item
-     * @param string  $column_name - current column name
+     * @param  array   $item
+     * @param  string  $column_name  Current column name.
      * @return mixed
      */
     public function column_default( $item, $column_name ) {
@@ -168,7 +170,8 @@ if ( !class_exists( "NWSI_Relationships_Table" ) ) {
     }
 
     /**
-     * Define which columns are hidden
+     * Define which columns are hidden.
+     *
      * @override
      * @return array
      */
@@ -177,7 +180,8 @@ if ( !class_exists( "NWSI_Relationships_Table" ) ) {
     }
 
     /**
-     * Define the sortable columns
+     * Define the sortable columns.
+     *
      * @override
      * @return array
      */
