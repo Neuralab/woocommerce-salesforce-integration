@@ -19,8 +19,10 @@ if ( !class_exists( "NWSI_Order_Model" ) ) {
   class NWSI_Order_Model extends WC_Order implements NWSI_Model {
 
     /**
-    * Class constructor
+    * Class constructor.
+    *
     * @override
+    * @see https://docs.woocommerce.com/wc-apidocs/class-WC_Order.html
     * @param int|WC_Order $order  Defaults to empty string.
     */
     public function __construct( $order = "" ) {

@@ -19,8 +19,10 @@ if ( !class_exists( "NWSI_Order_Item_Model" ) ) {
   class NWSI_Order_Item_Model extends WC_Order_Item implements NWSI_Model {
 
     /**
-    * Class constructor
+    * Class constructor.
+    *
     * @override
+    * @see https://docs.woocommerce.com/wc-apidocs/class-WC_Order_Item.html for
     * @param int|WC_Order_Item|array $order_item  Defaults to 0.
     */
     public function __construct( $order_item = 0 ) {
@@ -28,7 +30,7 @@ if ( !class_exists( "NWSI_Order_Item_Model" ) ) {
     }
 
     /**
-    * Return order meta keys which are collected from the WC_Order class
+    * Return order meta keys which are collected from the WC_Order_Item class.
     *
     * @since 0.9.2
     * @return array

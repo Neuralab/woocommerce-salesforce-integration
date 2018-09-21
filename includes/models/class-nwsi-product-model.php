@@ -21,8 +21,10 @@ if ( !class_exists( "NWSI_Product_Model" ) ) {
     private $order_product_meta_data;
 
     /**
-    * Class constructor
+    * Class constructor.
+    *
     * @override
+    * @see https://docs.woocommerce.com/wc-apidocs/class-WC_Product.html
     * @param int|WC_Product $product  Defaults to empty string.
     */
     public function __construct( $product = "" ) {
@@ -43,9 +45,6 @@ if ( !class_exists( "NWSI_Product_Model" ) ) {
     * @return array
     */
     public function get_product_meta_keys() {
-      // properties not needed for integration
-      $except = ["_edit_lock", "_edit_last", "_product_image_gallery", "_is_variable"];
-
       require_once( NWSI_DIR_PATH . "includes/controllers/core/class-nwsi-db.php" );
 
       $db = new NWSI_DB();
