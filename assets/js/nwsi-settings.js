@@ -9,9 +9,9 @@
     var URLParts = currentURL.split("?");
 
     if ( URLParts.length >= 2 ) {
-      if ( URLParts[1].indexOf("page=wc-settings") !== -1
-        && URLParts[1].indexOf("tab=integration") !== -1
-        && URLParts[1].indexOf("section=nwsi") !== -1 ) {
+      if ( URLParts[1].indexOf("page=wc-settings") !== -1 &&
+        URLParts[1].indexOf("tab=integration") !== -1 &&
+        URLParts[1].indexOf("section=nwsi") !== -1 ) {
 
         var URLBase           = URLParts[0];
         var GETParams         = URLParts[1].split("&");
@@ -35,11 +35,6 @@
         }
       }
     }
-
-    // if (window.history.replaceState) {
-    //  //prevents browser from storing history with each change:
-    //  window.history.replaceState(statedata, title, url);
-    // }
   }
   /**
    * Add new relationship after "Add" button click

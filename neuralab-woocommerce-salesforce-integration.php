@@ -94,16 +94,23 @@ if ( nwsi_is_woocommerce_active() ) {
           $orders_view = new NWSI_Orders_View();
           $orders_view->register_hooks();
 
-          //TODO: Find a better way of doing this
-          add_action('admin_enqueue_scripts', function() {
-            wp_enqueue_style( "nwsi-settings-style", plugins_url( "/includes/style/nwsi-settings.css", __FILE__ ) );
-          });
+          add_action('admin_enqueue_scripts', array( $this, 'register_assets' ) );
         }
 
         $this->worker = new NWSI_Salesforce_Worker();
         // add_action( "woocommerce_checkout_order_processed", array( $this, "process_order" ), 10, 1 );
         add_action( "woocommerce_thankyou", array( $this, "process_order" ), 90, 1 );
 
+      }
+
+      /**
+       * Enqueue plugin's script and stylesheet.
+       */
+      public function register_assets() {
+        wp_enqueue_style( "nwsi-settings-style", NWSI_DIR_URL . "assets/style/nwsi-settings.css" );
+
+        wp_enqueue_script( "nwsi-settings-js", NWSI_DIR_URL . "assets/js/nwsi-settings.js", array( "jquery" ) );
+        wp_localize_script( "nwsi-settings-js", "ajaxObject", array( "url" => admin_url( "admin-ajax.php" ) ) );
       }
 
       /**
@@ -172,6 +179,8 @@ if ( nwsi_is_woocommerce_active() ) {
           return;
         }
 
+        NWSI_Main::define_plugin_constants();
+
         delete_option( "woocommerce_nwsi_settings" );
         delete_option( "woocommerce_nwsi_access_token" );
         delete_option( "woocommerce_nwsi_refresh_token" );
@@ -189,8 +198,8 @@ if ( nwsi_is_woocommerce_active() ) {
       }
 
       /**
-       * Return integrations array with new section element. Needed for
-       * woocommerce_integrations filter hook.
+       * Return integrations array with new section element. Used in
+       * "woocommerce_integrations" filter hook.
        *
        * @param array $integrations
        * @return array
