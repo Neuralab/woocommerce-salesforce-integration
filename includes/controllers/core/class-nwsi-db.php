@@ -11,7 +11,7 @@ if ( !class_exists( "NWSI_DB" ) ) {
      * Name of the relationship table.
      * @var string
      */
-    private $rel_table_name = "";
+    private $rel_table_name;
 
     /**
      * Class constructor.
@@ -29,7 +29,8 @@ if ( !class_exists( "NWSI_DB" ) ) {
       global $wpdb;
 
       $charset_collate = $wpdb->get_charset_collate();
-      $query = "CREATE TABLE $this->rel_table_name (
+      $table_name = esc_sql( $this->rel_table_name );
+      $query = "CREATE TABLE $table_name (
         id MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
         hash_key VARCHAR(128) NOT NULL,
         relationships TEXT NOT NULL,
@@ -56,7 +57,7 @@ if ( !class_exists( "NWSI_DB" ) ) {
     public function delete_relationship_table() {
       global $wpdb;
 
-      $wpdb->query( "DROP TABLE IF EXISTS " . $this->rel_table_name );
+      $wpdb->query( "DROP TABLE IF EXISTS " . esc_sql( $this->rel_table_name ) );
     }
 
     /**
@@ -231,7 +232,7 @@ if ( !class_exists( "NWSI_DB" ) ) {
     private function relationship_data_to_json( $data ) {
 
       $relationships = array();
-      for( $i = 0; $i < intval( $data["numOfFields"] ); $i++ ) {
+      for( $i = 0; $i < intval( $data["fields-count"] ); $i++ ) {
         if ( !empty( $data[ "wcField-" . $i ] ) && $data[ "wcField-" . $i ] != "none" ) {
           $temp = array(
             "source"  => $data[ "wcField-" . $i . "-source" ],
@@ -280,7 +281,6 @@ if ( !class_exists( "NWSI_DB" ) ) {
         . "required_sf_objects, unique_sf_fields FROM $this->rel_table_name WHERE hash_key=%s";
 
       $response = $wpdb->get_results( $wpdb->prepare( $query, $key ) );
-
       if ( empty( $response ) ) {
         return null;
       } else {
@@ -381,66 +381,5 @@ if ( !class_exists( "NWSI_DB" ) ) {
       return $sql_ids;
     }
 
-    /**
-     * Filter raw keys extracted from the database for order, product, etc.
-     * @param  array $keys_raw
-     * @return array
-     */
-    private function filter_meta_keys( $keys_raw ) {
-      $keys = array();
-      foreach ($keys_raw as $key_container) {
-        $pos = strpos( $key_container[0], "_" );
-        if ( $pos !== false ) {
-          array_push( $keys, substr_replace( $key_container[0], "", $pos, strlen( "_" ) ) );
-        } else {
-          array_push( $keys, $key_container[0] );
-        }
-      }
-      return $keys;
-    }
-
-    /**
-    * Return WC_Order magic properties from orders in DB.
-    *
-    * @return array
-    */
-    public function get_order_meta_keys() {
-      global $wpdb;
-
-      $query  = "SELECT DISTINCT( meta_key ) FROM " . $wpdb->prefix . "postmeta WHERE post_id=(";
-      $query .= "SELECT ID FROM " . $wpdb->prefix . "posts WHERE post_type='shop_order' ";
-      $query .= "ORDER BY ID DESC )";
-
-      $keys_raw = $wpdb->get_results( $query, ARRAY_N );
-      return $this->filter_meta_keys( $keys_raw );
-    }
-
-    /**
-    * Return WC_Product magic properties from products in DB.
-    *
-    * @return array
-    */
-    public function get_product_meta_keys() {
-      global $wpdb;
-
-      $query  = "SELECT DISTINCT( meta_key ) FROM " . $wpdb->prefix . "postmeta WHERE post_id IN (";
-      $query .= "SELECT ID FROM " . $wpdb->prefix . "posts WHERE post_type='product' OR post_type='product_variation')";
-
-      $keys_raw = $wpdb->get_results( $query, ARRAY_N );
-      return $this->filter_meta_keys( $keys_raw );
-    }
-
-    /**
-    * Return WC_Order_Item properties from order item entry in DB.
-    *
-    * @return array
-    */
-    public function get_order_item_meta_keys() {
-      global $wpdb;
-
-      $query = "SELECT DISTINCT ( meta_key ) FROM " . $wpdb->prefix . "woocommerce_order_itemmeta";
-
-      return $wpdb->get_results( $query );
-    }
   }
 }

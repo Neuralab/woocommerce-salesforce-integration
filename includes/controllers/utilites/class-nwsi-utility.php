@@ -57,5 +57,24 @@ if ( !class_exists( "NWSI_Utility" ) ) {
       return $content;
     }
 
+    /**
+     * Filter raw keys extracted from the database for order, product, etc.
+     *
+     * @param  array $keys_raw
+     * @return array
+     */
+    public function filter_meta_keys( $keys_raw ) {
+      $keys = array();
+      foreach ($keys_raw as $key_container) {
+        $pos = strpos( $key_container[0], "_" );
+        if ( $pos !== false ) {
+          array_push( $keys, substr_replace( $key_container[0], "", $pos, strlen( "_" ) ) );
+        } else {
+          array_push( $keys, $key_container[0] );
+        }
+      }
+      return $keys;
+    }
+
   }
 }
