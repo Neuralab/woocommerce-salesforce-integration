@@ -218,8 +218,9 @@ if ( !class_exists( "NWSI_Salesforce_Worker" ) ) {
     */
     private function get_values( $connections, $item ) {
       $values = array();
+      error_log( '--------------------------------' );
       foreach( $connections as $connection ) {
-
+        error_log( print_r( $connection, true ) );
         if ( $connection->source == "woocommerce" ) {
           $value = $item->get( $connection->from );
           // validation

@@ -51,10 +51,33 @@
 
   } );
 
+  $( document ).on( "change", ".nwsi-sf-field", function( e ) {
+    if ( typeof nwsiAjax !== "object" ) {
+      return;
+    }
+
+    var $selected = $( this ).find( ":selected" );
+    var data = {
+      action: "nwsi_get_picklist",
+      // name: $selected.val(),
+      // type: $selected.data( "type" ),
+    }
+    console.log(data);
+    console.log(nwsiAjax.url);
+    $.get( nwsiAjax.url, data )
+    .done( function( response ) {
+      console.log(response);
+    } );
+  } );
+
+  $( "#nwsi-add-new-relationship" ).click( function( e ) {
+    e.preventDefault();
+  } );
+
   /**
    * Create new select and checkbox element for requires salesforce objects
    */
-  $( "#nwsi-add-new-required-sf-object" ).click( function(e) {
+  $( "#nwsi-add-new-required-sf-object" ).click( function( e ) {
     e.preventDefault();
 
     var container = $( "#nwsi-required-sf-objects > tbody" );
@@ -96,7 +119,7 @@
 
     container.append( "<span class='nwsi-unique-fields-plus'> + </span>" );
 
-    var newSelect = document.createElement("select");
+    var newSelect = document.createElement( "select" );
     $( newSelect )
     .attr( "name", "uniqueSfField-" + String( selectNum ) )
     .html( uniqueSfField0.html() )

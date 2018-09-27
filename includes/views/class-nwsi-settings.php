@@ -22,11 +22,6 @@ if ( !class_exists( "NWSI_Settings" ) ) {
     private $relationships_table;
 
     /**
-     * @var NWSI_Relationships_Form
-     */
-    private $relationship_form;
-
-    /**
      * @var NWSI_Utility
      */
     private $utility;
@@ -48,22 +43,15 @@ if ( !class_exists( "NWSI_Settings" ) ) {
 
       global $woocommerce;
 
-      $this->init();
-      $this->process_requests();
-    }
-
-    /**
-     * Initialize class attributes.
-     */
-    public function init() {
       $this->id           = "nwsi";
       $this->method_title = __( "Salesforce", "woocommerce-integration-nwsi" );
 
-      $this->sf                = new NWSI_Salesforce_Object_Manager();
-      $this->relationship_form = new NWSI_Relationships_Form( $this->sf );
-      $this->db                = new NWSI_DB();
-      $this->utility           = new NWSI_Utility();
-      $this->admin_notice      = new NWSI_Admin_Notice();
+      $this->sf           = new NWSI_Salesforce_Object_Manager();
+      $this->db           = new NWSI_DB();
+      $this->utility      = new NWSI_Utility();
+      $this->admin_notice = new NWSI_Admin_Notice();
+
+      $this->process_requests();
     }
 
     /**
@@ -304,27 +292,27 @@ if ( !class_exists( "NWSI_Settings" ) ) {
      * @override
      */
     public function admin_options() {
-      if ( array_key_exists( "rel", $_GET ) && !empty( $_GET["rel"] ) ) {
-        if ( array_key_exists( "from", $_GET ) && !empty( $_GET["from"] ) &&
-            array_key_exists( "to", $_GET ) && !empty( $_GET["to"] ) ) {
-
+      if ( isset( $_GET["rel"] ) && !empty( $_GET["rel"] ) ) {
+        $this->relationship_form = new NWSI_Relationships_Form( $this->sf );
+        if ( isset( $_GET["from"] ) && !empty( $_GET["from"] ) && isset( $_GET["to"] ) && !empty( $_GET["to"] ) ) {
           // form for new relationship
-          if ( array_key_exists( "from_label", $_GET ) && !empty( $_GET["from_label"] ) &&
-              array_key_exists( "to_label", $_GET ) && !empty( $_GET["to_label"] ) ) {
-            $from_label = $_GET["from_label"];
-            $to_label   = $_GET["to_label"];
+          if ( isset( $_GET["from_label"] ) && !empty( $_GET["from_label"] ) && isset( $_GET["to_label"] ) && !empty( $_GET["to_label"] ) ) {
+            $from_label = esc_sql( $_GET["from_label"] );
+            $to_label   = esc_sql( $_GET["to_label"] );
           } else {
-            $from_label = $_GET["from"];
-            $to_label   = $_GET["to"];
+            $from_label = esc_sql( $_GET["from"] );
+            $to_label   = esc_sql( $_GET["to"] );
           }
 
-          $this->relationship_form->display_blank( $_GET["from"], $from_label, $_GET["to"], $to_label );
+          $to   = esc_sql( $_GET["to"] );
+          $from = esc_sql( $_GET["from"] );
+          $this->relationship_form->display_blank( $from, $from_label, $to, $to_label );
 
-        } else if ( array_key_exists( "key", $_GET ) && !empty( $_GET["key"] ) ) {
+        } else if ( isset( $_GET["key"] ) && !empty( $_GET["key"] ) ) {
           // form for already existing relationship
-          $this->relationship_form->display_existing( $this->db->get_relationship_by_key( $_GET["key"] ) );
+          $key = esc_sql( $_GET["key"] );
+          $this->relationship_form->display_existing( $this->db->get_relationship_by_key( $key ) );
         }
-
       } else {
         // default view
         parent::admin_options();
@@ -332,9 +320,6 @@ if ( !class_exists( "NWSI_Settings" ) ) {
 
         if ( $this->sf->has_access_token() ) {
           $this->display_default_settings_page();
-
-          wp_enqueue_script( "nwsi-settings-js", plugins_url("../js/nwsi-settings.js", __FILE__ ), array( "jquery" ) );
-          wp_localize_script( "nwsi-settings-js", "ajaxObject", array( "url" => admin_url( "admin-ajax.php" ) ) );
         }
       }
     }

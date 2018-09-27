@@ -190,7 +190,7 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
     /**
      * Return object description or null in case of failure
      * @param string $object_name
-     * @return array
+     * @return array|null
      */
     public function get_object_description( $object_name ) {
       $url = $this->instance_url . "/services/data/" . $this->api_version . "/sobjects/" . $object_name . "/describe/" ;
@@ -303,15 +303,15 @@ if ( !class_exists( "NWSI_Salesforce_Object_Manager" ) ) {
      * Delete all OrderItems connected to an Order with given ID
      * @param string $order_id
      */
-     private function delete_orders_items( $order_id ) {
-       $query = "SELECT Id FROM OrderItem WHERE OrderId='" . $order_id . "'";
+    private function delete_orders_items( $order_id ) {
+      $query = "SELECT Id FROM OrderItem WHERE OrderId='" . $order_id . "'";
 
-       $url = $this->instance_url . "/services/data/" . $this->api_version . "/query?q=" . urlencode( $query );
-       $order_items_response = $this->get_response( $url );
-       foreach( $order_items_response["records"] as $order_item ) {
-         $url_delete = $this->instance_url . "/services/data/" . $this->api_version . "/sobjects/OrderItem/" . urlencode( $order_item["Id"] );
-         $this->get_response( $url_delete, true, "delete" );
-       }
+      $url = $this->instance_url . "/services/data/" . $this->api_version . "/query?q=" . urlencode( $query );
+      $order_items_response = $this->get_response( $url );
+      foreach( $order_items_response["records"] as $order_item ) {
+        $url_delete = $this->instance_url . "/services/data/" . $this->api_version . "/sobjects/OrderItem/" . urlencode( $order_item["Id"] );
+        $this->get_response( $url_delete, true, "delete" );
+      }
 
      }
   }
