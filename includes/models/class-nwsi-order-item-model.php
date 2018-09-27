@@ -57,7 +57,7 @@ if ( !class_exists( "NWSI_Order_Item_Model" ) ) {
         // combine with order meta keys from the database
         require_once( NWSI_DIR_PATH . "includes/controllers/core/class-nwsi-db.php" );
         $db   = new NWSI_DB();
-        $keys = array_merge( $data_keys, $db->get_order_item_meta_keys() );
+        $keys = array_merge( $data_keys, $this->get_order_item_meta_keys() );
       } else {
         $keys = $data_keys;
       }
@@ -90,6 +90,19 @@ if ( !class_exists( "NWSI_Order_Item_Model" ) ) {
       } else {
         return $value;
       }
+    }
+
+    /**
+    * Return WC_Order_Item properties from order item entry in DB.
+    *
+    * @return array
+    */
+    public function get_order_item_meta_keys() {
+      global $wpdb;
+
+      $query = "SELECT DISTINCT ( meta_key ) FROM " . $wpdb->prefix . "woocommerce_order_itemmeta";
+
+      return $wpdb->get_results( $query );
     }
 
   }

@@ -19,6 +19,11 @@ if ( !class_exists( "NWSI_Order_Model" ) ) {
   class NWSI_Order_Model extends WC_Order implements NWSI_Model {
 
     /**
+     * @var NWSI_Utility
+     */
+    private $utility;
+
+    /**
     * Class constructor.
     *
     * @override
@@ -26,6 +31,9 @@ if ( !class_exists( "NWSI_Order_Model" ) ) {
     * @param int|WC_Order $order  Defaults to empty string.
     */
     public function __construct( $order = "" ) {
+      require_once( NWSI_DIR_PATH . "includes/controllers/utilites/class-nwsi-utility.php" );
+      $this->utility = new NWSI_Utility();
+
       parent::__construct( $order );
     }
 
@@ -59,9 +67,7 @@ if ( !class_exists( "NWSI_Order_Model" ) ) {
 
       if ( $include_db_keys ) {
         // combine with order meta keys from the database
-        require_once( NWSI_DIR_PATH . "includes/controllers/core/class-nwsi-db.php" );
-        $db   = new NWSI_DB();
-        $keys = array_merge( $data_keys, $db->get_order_meta_keys() );
+        $keys = array_merge( $data_keys, $this->get_order_meta_keys() );
       } else {
         $keys = $data_keys;
       }
@@ -94,6 +100,22 @@ if ( !class_exists( "NWSI_Order_Model" ) ) {
       } else {
         return $value;
       }
+    }
+
+    /**
+    * Return WC_Order magic properties from orders in DB.
+    *
+    * @return array
+    */
+    private function get_order_meta_keys() {
+      global $wpdb;
+
+      $query  = "SELECT DISTINCT( meta_key ) FROM " . $wpdb->prefix . "postmeta WHERE post_id=(";
+      $query .= "SELECT ID FROM " . $wpdb->prefix . "posts WHERE post_type='shop_order' ";
+      $query .= "ORDER BY ID DESC )";
+
+      $keys_raw = $wpdb->get_results( $query, ARRAY_N );
+      return $this->utility->filter_meta_keys( $keys_raw );
     }
 
   }

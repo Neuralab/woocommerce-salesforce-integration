@@ -18,7 +18,16 @@ if ( !class_exists( "NWSI_Product_Model" ) ) {
    */
   class NWSI_Product_Model extends WC_Product implements NWSI_Model {
 
+    /**
+     * Product's meta data.
+     * @var array
+     */
     private $order_product_meta_data;
+
+    /**
+     * @var NWSI_Utility
+     */
+    private $utility;
 
     /**
     * Class constructor.
@@ -28,6 +37,9 @@ if ( !class_exists( "NWSI_Product_Model" ) ) {
     * @param int|WC_Product $product  Defaults to empty string.
     */
     public function __construct( $product = "" ) {
+      require_once( NWSI_DIR_PATH . "includes/controllers/utilites/class-nwsi-utility.php" );
+      $this->utility = new NWSI_Utility();
+
       parent::__construct( $product );
     }
 
@@ -38,23 +50,6 @@ if ( !class_exists( "NWSI_Product_Model" ) ) {
     */
     public function set_order_product_meta_data( $meta_data ) {
       $this->order_product_meta_data = $meta_data;
-    }
-
-    /**
-    * Return product properties from latest product
-    * @return array
-    */
-    public function get_product_meta_keys() {
-      require_once( NWSI_DIR_PATH . "includes/controllers/core/class-nwsi-db.php" );
-
-      $db = new NWSI_DB();
-      $meta_keys = $db->get_product_meta_keys();
-
-      if ( empty( $items ) ) {
-        // fallback if there's no products in DB
-        $items = $this->get_default_product_meta_keys();
-      }
-      return $meta_keys;
     }
 
     /**
@@ -83,9 +78,7 @@ if ( !class_exists( "NWSI_Product_Model" ) ) {
 
       if ( $include_db_keys ) {
         // combine with product meta keys from the database
-        require_once( NWSI_DIR_PATH . "includes/controllers/core/class-nwsi-db.php" );
-        $db   = new NWSI_DB();
-        $keys = array_merge( $data_keys, $db->get_product_meta_keys() );
+        $keys = array_merge( $data_keys, $this->get_product_meta_keys() );
       } else {
         $keys = $data_keys;
       }
@@ -118,6 +111,21 @@ if ( !class_exists( "NWSI_Product_Model" ) ) {
       } else {
         return $value;
       }
+    }
+
+    /**
+    * Return WC_Product magic properties from products in DB.
+    *
+    * @return array
+    */
+    public function get_product_meta_keys() {
+      global $wpdb;
+
+      $query  = "SELECT DISTINCT( meta_key ) FROM " . $wpdb->prefix . "postmeta WHERE post_id IN (";
+      $query .= "SELECT ID FROM " . $wpdb->prefix . "posts WHERE post_type='product' OR post_type='product_variation')";
+
+      $keys_raw = $wpdb->get_results( $query, ARRAY_N );
+      return $this->utility->filter_meta_keys( $keys_raw );
     }
 
   }
