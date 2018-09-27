@@ -109,8 +109,8 @@ if ( nwsi_is_woocommerce_active() ) {
       public function register_assets() {
         wp_enqueue_style( "nwsi-settings-style", NWSI_DIR_URL . "assets/style/nwsi-settings.css" );
 
-        wp_enqueue_script( "nwsi-settings-js", NWSI_DIR_URL . "assets/js/nwsi-settings.js", array( "jquery" ) );
-        wp_localize_script( "nwsi-settings-js", "ajaxObject", array( "url" => admin_url( "admin-ajax.php" ) ) );
+        wp_enqueue_script( "nwsi-settings-js", NWSI_DIR_URL . "assets/js/nwsi-settings.js", array( "jquery" ), false, true );
+        wp_localize_script( "nwsi-settings-js", "nwsiAjax", array( "url" => admin_url( "admin-ajax.php" ) ) );
       }
 
       /**
